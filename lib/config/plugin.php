@@ -10,16 +10,11 @@
 
 return array(
     'name' => 'RSS Feed of products',
-//    'description' => 'More reports',
+    'description' => 'RSS Feed of products ordered by creation date',
     'vendor'=>670917,
     'version'=>'1.0.0',
-    'shop_settings' => FALSE,
+    'importexport' => 'profiles',
+    'export_profile' => TRUE,
     'frontend'    => TRUE,
-//    'icons'=>array(
-//        16 => 'img/actions-office-chart-line-percentage-icon.png'
-//        ),
-//    'handlers' => array(
-//        'backend_reports' => 'backendReports',
-//    ),
     'locale' => array('en_US', 'ru_RU')
 );
