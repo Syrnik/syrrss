@@ -10,6 +10,8 @@
 
 /**
  * String functions
+ * 
+ * @todo Избавиться, когда и если во фреймворке появится мой или не мой патч с методом uuid()
  *
  * @package webasyst.shop.plugin.syrrss
  */
