@@ -9,9 +9,9 @@
  */
 
 return array(
-    "rss/<hash:[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12}>.xml" => array(
+    "rssfeed/<hash:[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12}>.xml" => array(
         "plugin" => "syrrss",
-        "module" => "feed",
-        "action" => "catalog"
+        "module" => "frontend",
+        "action" => "feed"
     )
 );

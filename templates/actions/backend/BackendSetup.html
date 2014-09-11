@@ -16,9 +16,26 @@
 <div class="block double-padded" id="s-syrrss-form">
     <h1>{_wp("RSS Feed of Products")}</h1>
     <p>Это первый параграф. Самое главное правило программистов Webasyst — никогда не писать документацию.</p>
+    
     {if $settlements}
         <form id="s-plugin-syrrss" method="post" action="?plugin=syrrss&module=run">
             <div class="fields form">
+
+            {if $info.exists}
+                <div class="field-group" style="border-bottom: 1px solid #ccc;">
+                    <div class="field">
+                        <div class="name bold">
+                            <label for="s-plugin-syrrss-last-export">RSS-файл</label>
+                        </div>
+                        <div class="value">
+                            <input id="s-plugin-syrrss-last-export" type="text" value="{$info.url|escape}" readonly="readonly" class="long bold large" style="width: 75% !important;">
+                            <a href="{$info.url}?download=1" class="bold nowrap inline"><i class="icon16 download no-overhanging" style="margin-top: 0.4em;"></i>Скачать</a>
+                            <p class="small">Файл обновлен: {$info.mtime|wa_datetime:"humandatetime"}</p>
+                            <p class="small"><i class="icon10 yes"></i> Ссылка на RSS-файл является постоянной и не меняется при повторном экспорте товаров. Для включения автоматического экспорта товаров укажите период обновления с помощью настройки «Обновление файла» ниже и сохраните настройку, повторно экспортировав товары. Чтобы сделать ссылку недействительной, удалите профиль.</p>
+                        </div>
+                    </div>
+                </div>
+            {/if}
 
                 <div class="field js-profile-description">
                     <div class="name">Название профиля</div>
@@ -36,7 +53,7 @@
                         </div>
                         {if count($settlements)>1}
                             <div class="value no-shift">
-                                <select name="domain" id="s-plugin-syrss-domain">
+                                <select name="config[domain]" id="s-plugin-syrss-domain">
                                     {foreach $settlements as $route}
                                         <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
                                     {/foreach}
@@ -52,7 +69,7 @@
                         {elseif reset($settlements)}
                             <div class="value no-shift">
                                 {$route = reset($settlements)}
-                                <input type="text" readonly="readonly" value="{$route|escape}" name="domain" id="s-plugin-syrrss-domain">
+                                <input type="text" readonly="readonly" value="{$route|escape}" name="config[domain]" id="s-plugin-syrrss-domain">
 
                                 <p class="hint">
                                     Витрину необходимо указать для
@@ -71,7 +88,7 @@
                             <label for="s-plugin-syrrss-ondemand-update">Обновление файла</label>
                         </div>
                         <div class="value no-shift">
-                            <select name="lifetime" id="s-plugin-syrrss-ondemand-update">
+                            <select name="config[lifetime]" id="s-plugin-syrrss-ondemand-update">
                                 {html_options options=$ondemand_update_options selected=$profile.config.lifetime}
                             </select>
                             <p class="hint">
@@ -97,13 +114,13 @@
                 <div class="field-group">
                     <h2 class="gray">1. Выберите товары</h2>
                     {* Hash selection will be released next time *}
-                    <input type="hidden" name="hash" value="">
+                    <input type="hidden" name="config[hash]" value="">
                     <div class="field">
                         <div class="name">
                             <label for="s-plugin-syrrss-max-products">{_wp("Maximum products in the feed")}</label>
                         </div>
                         <div class="value no-shift">
-                            <select name="max_products" id="s-plugin-syrrss-max-products">
+                            <select name="config[max_products]" id="s-plugin-syrrss-max-products">
                                 {html_options options=$max_products_options selected=$profile.config.max_products}
                             </select>
                             <p class="hint">
@@ -129,7 +146,7 @@
                     <div class="field">
                         <div class="name"><label for="s-plugin-syrrss-channel-name">{_wp("Channel Name")}</label></div>
                         <div class="value">
-                            <input type="text" name="profile[config][channel_name]" placeholder="{_wp("Channel Name")}" value="{$profile.config.channel_name|escape}" id="s-plugin-syrrss-channel-name">
+                            <input type="text" name="config[channel_name]" placeholder="{_wp("Channel Name")}" value="{$profile.config.channel_name|escape}" id="s-plugin-syrrss-channel-name">
 
                             <p class="hint">Наименование канала RSS.</p>
                         </div>
