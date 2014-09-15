@@ -66,9 +66,9 @@ class shopSyrrssPluginRunController extends waLongActionController
             
             $this->rss = $this->initRss();
             
-            $this->rss->channel->title = str_replace(array('&','>','<'), array('&amp;','&gt;','&lt;'), $Config->getGeneralSettings('name'));
+            $this->rss->channel->title = $this->xmlEntities($profile_config['channel_name']);
             $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
-            $this->rss->channel->description = "New products";
+            $this->rss->channel->description = $this->xmlEntities($profile_config["channel_description"]);
 
         } catch (waException $e) {
             echo json_encode(array('error'=>$e->getMessage()));
@@ -230,6 +230,10 @@ class shopSyrrssPluginRunController extends waLongActionController
         if (!$this->collection) {
             $options = array(
                 'frontend' => true,
+                'params'=>array(
+                    'sort'=>'create_datetime',
+                    'order'=>'desc'
+                )
             );
 
             $hash = $this->data['hash'];
@@ -281,9 +285,9 @@ class shopSyrrssPluginRunController extends waLongActionController
     private function addItem($product)
     {
         $item = $this->rss->channel->addChild("item");
-        $item->title = $this->XmlEntities(strip_tags($product["name"]));
+        $item->title = $this->xmlEntities(strip_tags($product["name"]));
         $item->link = $this->productUrl($product);
-        $item->description = $this->XmlEntities(strip_tags($product["summary"]));
+        $item->description = $this->xmlEntities(strip_tags($product["summary"]));
     }
     
     /**
@@ -291,14 +295,19 @@ class shopSyrrssPluginRunController extends waLongActionController
      * @param string $str
      * @return string
      */
-    private function XmlEntities($str)
+    private function xmlEntities($str)
     {
         return str_replace(array('&','>','<'), array('&amp;','&gt;','&lt;'), $str);
     }
     
+    /**
+     * 
+     * @param array $product
+     * @return string
+     */
     private function productUrl($product)
     {
-        $url = version_compare(PHP_VERSION, '5.3.0', ">=") ? preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', function($a){return rawurlencode(reset($a));}, $product['url']) : preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['url']);
+        $url = version_compare(PHP_VERSION, '5.3.0', ">=") ? preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', function($a){return rawurlencode(reset($a));}, $product['frontend_url']) : preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
         
         return 'http://'.ifempty($this->data['base_url'], 'localhost').$url;
     }
