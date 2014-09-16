@@ -69,6 +69,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             $this->rss->channel->title = $profile_config['channel_name'];
             $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
             $this->rss->channel->description = $profile_config["channel_description"];
+            $this->rss->channel->generator = "SyrRSS plugin for Shopscript";
 
         } catch (waException $e) {
             echo json_encode(array('error'=>$e->getMessage()));
@@ -290,7 +291,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         $image_tag = "";
 
         $item = $this->rss->channel->addChild("item");
-        $item->title = $this->strip_tags($product["name"]);
+        $item->title = strip_tags($product["name"]);
         $item->link = $this->productUrl($product);
 
         $create_date = new DateTime($product["create_datetime"]);
