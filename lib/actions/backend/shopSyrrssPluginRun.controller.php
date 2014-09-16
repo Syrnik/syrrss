@@ -284,6 +284,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     private function addItem($product)
     {
+        /** @todo Ask user about image size */
         $size = "210x0";
 
         $image_tag = "";
@@ -295,6 +296,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         $create_date = new DateTime($product["create_datetime"]);
         $item->pubDate = $create_date->format("r");
 
+        /** @todo Process more tham one image, ask user about maximum of images to export */
         if($product["images"]) {
             $image = array_shift($product["images"]);
             $image_tag = '<img src="'.
