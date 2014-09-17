@@ -193,7 +193,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     private function getProfile()
     {
-        $Profile = new shopImportexportHelper('syrrss');
+        $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
 
         $profile_id = waRequest::param('profile_id');
 
