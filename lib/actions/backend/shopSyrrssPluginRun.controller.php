@@ -60,10 +60,15 @@ class shopSyrrssPluginRunController extends waLongActionController
                 'processed_count' => 0,
                 'timestamp' => time(),
                 'total_written' => 0,
+                'utm' => ""
             ));
 
             if($AppSettings->get('shop', "ignore_stock_count", 0)) {
                 $this->data["export_unavailable"] = 1;
+            }
+            
+            if(isset($profile_config["utm"]["source"]) && isset($profile_config["utm"]["medium"]) && isset($profile_config["utm"]["campaign"])) {
+                $this->data["utm"] = http_build_query(array_map('rawurlencode', $profile_config["utm"]));
             }
             
             $this->data["count"] = $this->getCollection()->count();
@@ -364,6 +369,10 @@ class shopSyrrssPluginRunController extends waLongActionController
     private function productUrl($product)
     {
         $url = version_compare(PHP_VERSION, '5.3.0', ">=") ? preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', function($a){return rawurlencode(reset($a));}, $product['frontend_url']) : preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
+        
+        if ($this->data['utm']) {
+            $url .= (strpos($url, '?') ? '&' : '?').$this->data['utm'];
+        }
 
         return 'http://'.ifempty($this->data['base_url'], 'localhost').$url;
     }
