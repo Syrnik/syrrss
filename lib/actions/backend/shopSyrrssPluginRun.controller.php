@@ -57,6 +57,7 @@ class shopSyrrssPluginRunController extends waLongActionController
                 'memory_avg' => memory_get_usage(),
                 'offset' => array('offers'=>0),
                 'path' => array('offers' => shopSyrrssPlugin::path($profile_id . ".xml")),
+                'primary_currency' => $Config->getCurrency(),
                 'processed_count' => 0,
                 'timestamp' => time(),
                 'total_written' => 0,
@@ -66,11 +67,11 @@ class shopSyrrssPluginRunController extends waLongActionController
             if($AppSettings->get('shop', "ignore_stock_count", 0)) {
                 $this->data["export_unavailable"] = 1;
             }
-            
+
             if(isset($profile_config["utm"]["source"]) && isset($profile_config["utm"]["medium"]) && isset($profile_config["utm"]["campaign"])) {
                 $this->data["utm"] = http_build_query(array_map('rawurlencode', $profile_config["utm"]));
             }
-            
+
             $this->data["count"] = $this->getCollection()->count();
             $this->data["max_products"] = intval($profile_config["max_products"]) > 0 ? intval($profile_config["max_products"]) : $this->data["count"];
 
@@ -82,7 +83,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
             $this->rss->channel->description = $profile_config["channel_description"];
             $this->rss->channel->generator = "SyrRSS plugin for Shopscript " . $Plugin->getVersion();
-            
+
         } catch (waException $e) {
             echo json_encode(array('error'=>$e->getMessage()));
         }
@@ -176,7 +177,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     /**
      * Данные из формы
-     * 
+     *
      * @return array
      */
     private function getProfileOptionsFromRequest()
@@ -205,7 +206,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
 
         $profile_id = waRequest::param('profile_id');
-        
+
         if(!$profile_id) {
             throw new waException("Invalid profile", 404);
         }
@@ -264,7 +265,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             if ($hash == '*') {
                 $hash = '';
             }
-            
+
             // Чтобы отключить настройку сортировки отсутствующих и недоступных товаров
             // Почему это это через параметр запроса-то???!!!
             // Неужели нельзя в $options передавать?
@@ -298,7 +299,7 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * 
+     *
      * @param string $path
      * @throws waException
      */
@@ -318,7 +319,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     /**
      * Добавляет item в channel
-     * 
+     *
      * @param array $product
      */
     private function addItem($product)
@@ -327,7 +328,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         $size = "210x0";
         $image_tag = "";
         $create_date = new DateTime($product["create_datetime"]);
-        
+
         $item = $this->rss->channel->addChild("item");
         $item->title = strip_tags($product["name"]);
         $item->link = $this->productUrl($product);
@@ -352,7 +353,8 @@ class shopSyrrssPluginRunController extends waLongActionController
 
             $description = "{$image_tag}<p>" .
                     htmlentities(strip_tags($product["summary"]), ENT_QUOTES, 'UTF-8').
-                    '</p>';
+                    '</p>'.
+                    $this->getItemPrice($product);
 
             $cdata_dom_node = dom_import_simplexml($cdata_description);
             $dom_node_owner = $cdata_dom_node->ownerDocument;
@@ -369,7 +371,7 @@ class shopSyrrssPluginRunController extends waLongActionController
     private function productUrl($product)
     {
         $url = version_compare(PHP_VERSION, '5.3.0', ">=") ? preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', function($a){return rawurlencode(reset($a));}, $product['frontend_url']) : preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
-        
+
         if ($this->data['utm']) {
             $url .= (strpos($url, '?') ? '&' : '?').$this->data['utm'];
         }
@@ -433,6 +435,36 @@ class shopSyrrssPluginRunController extends waLongActionController
         $report .= '</div>';
 
         return $report;
+    }
+
+    /**
+     *
+     * @param array $product
+     * @return string
+     */
+    private function getItemPrice($product)
+    {
+        static $Currency;
+
+        if(isset($product["price"]) && isset($product["currency"])) {
+            if($product["currency"] == $this->data["primary_currency"]) {
+                $price = $product["price"];
+            } else {
+                if(!$Currency) {
+                    $Currency = new shopCurrencyModel();
+                }
+
+                $price = $Currency->convert($product["price"], $product["currency"], $this->data["primary_currency"]);
+            }
+
+            return "<p>" .
+                    _wp("Price:") .
+                    " " .
+                    waCurrency::format("%{s}", $price, $this->data["primary_currency"]) .
+                    "</p>";
+        }
+
+        return "";
     }
 
 }
