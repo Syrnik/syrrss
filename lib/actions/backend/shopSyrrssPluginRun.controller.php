@@ -302,6 +302,11 @@ class shopSyrrssPluginRunController extends waLongActionController
         }
     }
 
+    /**
+     * Добавляет item в channel
+     * 
+     * @param array $product
+     */
     private function addItem($product)
     {
         /** @todo Ask user about image size */
