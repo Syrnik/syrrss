@@ -29,11 +29,11 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     protected function init()
     {
-        $Profile = new shopImportexportHelper('syrrss');
+        $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
         $Config = waSystem::getInstance()->getConfig();
 
         /** @var shopSyrrssPlugin */
-        $Plugin = waSystem::getInstance()->getPlugin('syrrss');
+        $Plugin = waSystem::getInstance()->getPlugin(shopSyrrssPlugin::PLUGIN_ID);
 
         try {
 
@@ -74,8 +74,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             $this->rss->channel->title = $profile_config['channel_name'];
             $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
             $this->rss->channel->description = $profile_config["channel_description"];
-            $this->rss->channel->generator = "SyrRSS plugin for Shopscript " .
-                waSystem::getInstance()->getPlugin(shopSyrrssPlugin::PLUGIN_ID)->getVersion();
+            $this->rss->channel->generator = "SyrRSS plugin for Shopscript " . $Plugin->getVersion();
 
         } catch (waException $e) {
             echo json_encode(array('error'=>$e->getMessage()));
@@ -251,6 +250,11 @@ class shopSyrrssPluginRunController extends waLongActionController
             if ($hash == '*') {
                 $hash = '';
             }
+            
+            // Чтобы отключить настройку сортировки отсутствующих и недоступных товаров
+            // Почему это это через параметр запроса-то???!!!
+            // Неужели нельзя в $options передавать?
+            waRequest::setParam('drop_out_of_stock', 0);
 
             $this->collection = new shopProductsCollection($hash, $options);
         }
