@@ -23,12 +23,10 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
     /** @var shopConfig */
     private $ShopConfig;
 
-    const PLUGIN_ID = "syrrss";
-
     public function __construct($params = null)
     {
         parent::__construct($params);
-        $this->Profile = new shopImportexportHelper(self::PLUGIN_ID);
+        $this->Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
         $this->Routing = waSystem::getInstance()->getRouting();
         $this->ShopConfig = waSystem::getInstance("shop")->getConfig();
     }
@@ -78,6 +76,7 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
             "domain" => "",
             "lifetime" => 0,
             "max_products" => 15,
+            "channel_description" => _wp("New products")
         );
         
         if(!isset($profile["config"]["channel_name"]) || empty($profile["config"]["channel_name"])) {
@@ -121,7 +120,7 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
 
             if($info["exists"]) {
                 $info["mtime"] = filemtime($feed_file);
-                $info["url"] = $this->Routing->getUrl("shop/frontend/feed", array("plugin" => self::PLUGIN_ID, "hash" => $this->plugin()->getHash($profile["id"])));
+                $info["url"] = $this->Routing->getUrl("shop/frontend/feed", array("plugin" => shopSyrrssPlugin::PLUGIN_ID, "hash" => $this->plugin()->getHash($profile["id"])), TRUE);
             }
         }
 
@@ -137,7 +136,7 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
     {
         static $plugin;
         if(!$plugin) {
-            $plugin = wa()->getPlugin(self::PLUGIN_ID);
+            $plugin = wa()->getPlugin(shopSyrrssPlugin::PLUGIN_ID);
         }
         return $plugin;
     }
