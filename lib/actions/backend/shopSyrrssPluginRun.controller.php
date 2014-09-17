@@ -52,16 +52,21 @@ class shopSyrrssPluginRunController extends waLongActionController
                 'domain'=>$profile_config['domain'],
 //                'export'=>$profile_config['export'],
                 'hash'=>$profile_config['hash'],
+                'memory' => memory_get_peak_usage(),
+                'memory_avg' => memory_get_usage(),
                 'offset' => array('offers'=>0),
                 'path' => array('offers' => shopSyrrssPlugin::path($profile_id . ".xml")),
                 'processed_count' => 0,
                 'timestamp' => time(),
-                'memory' => memory_get_peak_usage(),
-                'memory_avg' => memory_get_usage()
+                'total_written' => 0,
             ));
 
             $this->data["count"] = $this->getCollection()->count();
+            $this->data["max_products"] = intval($profile_config["max_products"]) > 0 ? intval($profile_config["max_products"]) : $this->data["count"];
 
+            waLog::log(json_encode($this->data), 'rss17.log');
+            waLog::log(json_encode($profile_config), 'rss17-1.log');
+            
             $this->initRouting();
 
             $this->rss = $this->initRss();
@@ -69,7 +74,8 @@ class shopSyrrssPluginRunController extends waLongActionController
             $this->rss->channel->title = $profile_config['channel_name'];
             $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
             $this->rss->channel->description = $profile_config["channel_description"];
-            $this->rss->channel->generator = "SyrRSS plugin for Shopscript";
+            $this->rss->channel->generator = "SyrRSS plugin for Shopscript " .
+                waSystem::getInstance()->getPlugin(shopSyrrssPlugin::PLUGIN_ID)->getVersion();
 
         } catch (waException $e) {
             echo json_encode(array('error'=>$e->getMessage()));
@@ -90,9 +96,10 @@ class shopSyrrssPluginRunController extends waLongActionController
         $step = 0;
         $product = array_shift($product_collection);
 
-        while(($step < 50) && $product) {
+        while(($step < 50) && $product && $this->data["max_products"] > $this->data["total_written"]) {
 
             $this->addItem($product);
+            $this->data["total_written"]++;
 
             $this->data['processed_count']++;
             $step++;
@@ -124,10 +131,14 @@ class shopSyrrssPluginRunController extends waLongActionController
         return $result;
     }
 
+    /**
+     * @see waLongActionController::isDone()
+     * @return boolean
+     */
     protected function isDone()
     {
 
-        if($this->data["processed_count"] < $this->data["count"]) {
+        if(($this->data["processed_count"] < $this->data["count"]) && ($this->data["total_written"] < $this->data["max_products"])) {
             return FALSE;
         }
 
@@ -160,7 +171,6 @@ class shopSyrrssPluginRunController extends waLongActionController
         $hash = shopImportexportHelper::getCollectionHash();
 
         return array_merge(waRequest::post('config'), array('hash'=>$hash["hash"]));
-
     }
 
     protected function restore()
@@ -269,6 +279,11 @@ class shopSyrrssPluginRunController extends waLongActionController
         return waSystem::getInstance()->getTempPath('plugins/syrrss/', 'shop').$file;
     }
 
+    /**
+     * 
+     * @param string $path
+     * @throws waException
+     */
     private function loadRss($path = null)
     {
         if (!$path) {
@@ -287,14 +302,12 @@ class shopSyrrssPluginRunController extends waLongActionController
     {
         /** @todo Ask user about image size */
         $size = "210x0";
-
         $image_tag = "";
+        $create_date = new DateTime($product["create_datetime"]);
 
         $item = $this->rss->channel->addChild("item");
         $item->title = strip_tags($product["name"]);
         $item->link = $this->productUrl($product);
-
-        $create_date = new DateTime($product["create_datetime"]);
         $item->pubDate = $create_date->format("r");
 
         /** @todo Process more tham one image, ask user about maximum of images to export */
