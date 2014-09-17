@@ -15,6 +15,8 @@
  */
 class shopSyrrssPlugin extends shopPlugin
 {
+    
+    const PLUGIN_ID = 'syrrss';
 
     /**
      * 

@@ -22,6 +22,9 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
     
     /** @var shopConfig */
     private $ShopConfig;
+    
+    /** @var waAppSettingsModel */
+    private $AppSettings;
 
     public function __construct($params = null)
     {
@@ -29,6 +32,7 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
         $this->Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
         $this->Routing = waSystem::getInstance()->getRouting();
         $this->ShopConfig = waSystem::getInstance("shop")->getConfig();
+        $this->AppSettings = new waAppSettingsModel();
     }
 
     public function execute()
@@ -39,9 +43,12 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
         $current_domain = $profile["config"]["domain"];
         $profile["config"]["domain"] = $this->setRoutes($current_domain);
         $info = $this->getXmlFileInfo($profile);
+        $app_settings = array(
+            'ignore_stock_count' => $this->AppSettings->get("shop", "ignore_stock_count", 0)
+        );
         
         $this->view->assign('primary_currency', $this->ShopConfig->getCurrency());
-        $this->view->assign(compact("current_domain", "info", "profile", "profiles", "settlements"));
+        $this->view->assign(compact("app_settings", "current_domain", "info", "profile", "profiles", "settlements"));
     }
 
     /**
@@ -72,8 +79,9 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
     {
         $profile = $this->Profile->getConfig();
         $profile["config"] += array(
-            "hash" => "",
             "domain" => "",
+            "export_zero_stock" => 0,
+            "hash" => "",
             "lifetime" => 0,
             "max_products" => 15,
             "channel_description" => _wp("New products")

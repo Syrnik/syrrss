@@ -31,6 +31,7 @@ class shopSyrrssPluginRunController extends waLongActionController
     {
         $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
         $Config = waSystem::getInstance()->getConfig();
+        $AppSettings = new waAppSettingsModel();
 
         /** @var shopSyrrssPlugin */
         $Plugin = waSystem::getInstance()->getPlugin(shopSyrrssPlugin::PLUGIN_ID);
@@ -50,7 +51,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
             $this->data = array_merge($this->data, array(
                 'domain'=>$profile_config['domain'],
-//                'export'=>$profile_config['export'],
+                'export_unavailable'=>$profile_config["export_zero_stock"],
                 'hash'=>$profile_config['hash'],
                 'memory' => memory_get_peak_usage(),
                 'memory_avg' => memory_get_usage(),
@@ -61,12 +62,13 @@ class shopSyrrssPluginRunController extends waLongActionController
                 'total_written' => 0,
             ));
 
+            if($AppSettings->get('shop', "ignore_stock_count", 0)) {
+                $this->data["export_unavailable"] = 1;
+            }
+            
             $this->data["count"] = $this->getCollection()->count();
             $this->data["max_products"] = intval($profile_config["max_products"]) > 0 ? intval($profile_config["max_products"]) : $this->data["count"];
 
-            waLog::log(json_encode($this->data), 'rss17.log');
-            waLog::log(json_encode($profile_config), 'rss17-1.log');
-            
             $this->initRouting();
 
             $this->rss = $this->initRss();
@@ -97,8 +99,10 @@ class shopSyrrssPluginRunController extends waLongActionController
 
         while(($step < 50) && $product && $this->data["max_products"] > $this->data["total_written"]) {
 
-            $this->addItem($product);
-            $this->data["total_written"]++;
+            if(($product["price"] > 0) && ($this->data["export_unavailable"] || ($product["count"] === NULL) || ($product["count"] > 0))) {
+                $this->addItem($product);
+                $this->data["total_written"]++;
+            }
 
             $this->data['processed_count']++;
             $step++;
@@ -174,7 +178,7 @@ class shopSyrrssPluginRunController extends waLongActionController
     {
         $hash = shopImportexportHelper::getCollectionHash();
 
-        return array_merge(waRequest::post('config'), array('hash'=>$hash["hash"]));
+        return array_merge(array('export_zero_stock'=>0), waRequest::post('config'), array('hash'=>$hash["hash"]));
     }
 
     protected function restore()
@@ -318,14 +322,14 @@ class shopSyrrssPluginRunController extends waLongActionController
         $size = "210x0";
         $image_tag = "";
         $create_date = new DateTime($product["create_datetime"]);
-
+        
         $item = $this->rss->channel->addChild("item");
         $item->title = strip_tags($product["name"]);
         $item->link = $this->productUrl($product);
         $item->pubDate = $create_date->format("r");
 
         /** @todo Process more tham one image, ask user about maximum of images to export */
-        if($product["images"]) {
+        if(isset($product["images"])) {
             $image = array_shift($product["images"]);
             $image_tag = '<img src="'.
                     'http://'.
@@ -410,7 +414,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         $report = '<div class="successmsg">';
         $report .= sprintf('<i class="icon16 yes"></i>%s ', _wp('Exported'));
 
-        $report .= htmlentities(_wp("%d product", "%d products", $this->data["processed_count"]), ENT_QUOTES, "utf-8");
+        $report .= htmlentities(_wp("%d product", "%d products", $this->data["total_written"]), ENT_QUOTES, "utf-8");
 
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];

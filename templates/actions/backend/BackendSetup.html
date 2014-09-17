@@ -161,9 +161,9 @@
                     <div class="field">
                         <div class="name"><label for="s-plugin-syrrss-config-export-zero-stock">Остатки</label></div>
                         <div class="value no-shift"><label for="s-plugin-syrrss-config-export-zero-stock">
-                            <input name="export[zero_stock]" id="s-plugin-yandexmarket-export-zero-stock" type="checkbox" value="1"{if !empty($config.export_zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}> Выгружать товары с нулевым остатком
+                            <input name="config[export_zero_stock]" id="s-plugin-syrrss-config-export-zero-stock" type="checkbox" value="1"{if !empty($profile.config.export_zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}> Выгружать товары с нулевым остатком
                             </label>
-                            <p class="hint">Товары с нулевым остатком экспортируются как доступные под заказ</p>
+                            <p class="hint">Добавлять в ленту товары, которых нет в наличии</p>
                             {if !empty($app_settings.ignore_stock_count)}<p class="hint">Для отключения этой настройки в настройках складов должен быть выбран вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе.</p>{/if}
                         </div>
                     </div>
