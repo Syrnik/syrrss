@@ -165,6 +165,11 @@ class shopSyrrssPluginRunController extends waLongActionController
         echo json_encode($response);
     }
 
+    /**
+     * Данные из формы
+     * 
+     * @return array
+     */
     private function getProfileOptionsFromRequest()
     {
         $hash = shopImportexportHelper::getCollectionHash();
