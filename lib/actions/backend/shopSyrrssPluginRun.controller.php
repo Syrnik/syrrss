@@ -38,7 +38,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
         try {
 
-            if(waSystem::getInstance()->getenv('backend')) {
+            if(waSystem::getInstance()->getEnv() == 'backend') {
                 $profile_config = $this->getProfileOptionsFromRequest();
                 $profile_id = $Profile->setConfig($profile_config);
                 $Plugin->getHash($profile_id);
@@ -77,7 +77,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
             $this->rss->channel->description = $profile_config["channel_description"];
             $this->rss->channel->generator = "SyrRSS plugin for Shopscript " . $Plugin->getVersion();
-
+            
         } catch (waException $e) {
             echo json_encode(array('error'=>$e->getMessage()));
         }
@@ -200,7 +200,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
 
         $profile_id = waRequest::param('profile_id');
-
+        
         if(!$profile_id) {
             throw new waException("Invalid profile", 404);
         }
