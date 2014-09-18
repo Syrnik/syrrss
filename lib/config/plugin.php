@@ -17,5 +17,9 @@ return array(
     'export_profile' => TRUE,
     'frontend'    => TRUE,
     'locale' => array('ru_RU'),
-    'icon' => 'rss'
+    'icon' => 'rss',
+    'icons' => array(
+        16 => 'img/feed.png'
+    ),
+    'shop_settings' => TRUE
 );
