@@ -12,7 +12,7 @@ return array(
     'name' => _wp('RSS Feed of products'),
     'description' => _wp('Export all or several newest products to the RSS feed'),
     'vendor'=>670917,
-    'version'=>'1.0.0',
+    'version'=>'1.0.1',
     'importexport' => 'profiles',
     'export_profile' => TRUE,
     'frontend'    => TRUE,
