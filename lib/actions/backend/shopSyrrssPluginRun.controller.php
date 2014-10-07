@@ -69,6 +69,13 @@ class shopSyrrssPluginRunController extends waLongActionController
             }
 
             if(isset($profile_config["utm"]["source"]) && isset($profile_config["utm"]["medium"]) && isset($profile_config["utm"]["campaign"])) {
+                foreach(array("source", "medium", "campaign") as $param) {
+                    $profile_config["utm"][$param]=trim($profile_config["utm"][$param]);
+                    if(empty($profile_config["utm"][$param])) {
+                        unset($profile_config["utm"][$param]);
+                    }
+                }
+                if(!empty($profile_config["utm"]))
                 $this->data["utm"] = http_build_query(array_map('rawurlencode', $profile_config["utm"]));
             }
 
