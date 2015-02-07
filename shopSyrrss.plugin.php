@@ -28,9 +28,9 @@ class shopSyrrssPlugin extends shopPlugin
         $path = waSystem::getInstance()->getDataPath('plugins/syrrss/' . $file, false, 'shop', true);
         return $path;
     }
-    
+
     /**
-     * 
+     *
      * @param int $profile_id
      * @return string
      */
@@ -48,18 +48,19 @@ class shopSyrrssPlugin extends shopPlugin
         }
 
         if ($profile_id) {
-            $updated = false;
+            $updated = FALSE;
             if ((count($uuid) == 1) && isset($uuid[0])) {
                 $uuid[$profile_id] = $uuid[0];
-                $updated = true;
+                $updated = TRUE;
             } elseif (!isset($uuid[$profile_id])) {
-                $uuid[$profile_id] = shopSyrrssPluginString::uuid();
-                $updated = true;
+                $uuid[$profile_id] = waString::uuid();
+                $updated = TRUE;
             }
             if ($updated) {
                 $this->saveSettings(array('uuid' => $uuid));
             }
         }
+
         return ifset($uuid[$profile_id]);
     }
 
