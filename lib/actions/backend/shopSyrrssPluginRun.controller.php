@@ -452,24 +452,13 @@ class shopSyrrssPluginRunController extends waLongActionController
      */
     private function getItemPrice($product)
     {
-        static $Currency;
 
-        if(isset($product["price"]) && isset($product["currency"])) {
-            if($product["currency"] == $this->data["primary_currency"]) {
-                $price = $product["price"];
-            } else {
-                if(!$Currency) {
-                    $Currency = new shopCurrencyModel();
-                }
-
-                $price = $Currency->convert($product["price"], $product["currency"], $this->data["primary_currency"]);
-            }
-
+        if (isset($product["price"]) && isset($product["currency"])) {
             return "<p>" .
-                    _wp("Price:") .
-                    " " .
-                    waCurrency::format("%{s}", $price, $this->data["primary_currency"]) .
-                    "</p>";
+            _wp("Price:") .
+            " " .
+            waCurrency::format("%{s}", $product["price"], $this->data["primary_currency"]) .
+            "</p>";
         }
 
         return "";
