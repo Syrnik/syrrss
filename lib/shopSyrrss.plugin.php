@@ -1,9 +1,9 @@
 <?php
 /**
  * This file is a part of "RSS Feed of Products" plugin for ShopScript 5
- * 
+ *
  * @author Serge Rodovnichenko <sergerod@gmail.com>
- * 
+ *
  * @license http://www.webasyst.com/terms/#eula Webasyst Commercial
  * @version 1.0.1
  */
@@ -15,11 +15,11 @@
  */
 class shopSyrrssPlugin extends shopPlugin
 {
-    
+
     const PLUGIN_ID = 'syrrss';
 
     /**
-     * 
+     *
      * @param string $file
      * @return string
      */
@@ -48,13 +48,13 @@ class shopSyrrssPlugin extends shopPlugin
         }
 
         if ($profile_id) {
-            $updated = FALSE;
+            $updated = false;
             if ((count($uuid) == 1) && isset($uuid[0])) {
                 $uuid[$profile_id] = $uuid[0];
-                $updated = TRUE;
+                $updated = true;
             } elseif (!isset($uuid[$profile_id])) {
                 $uuid[$profile_id] = waString::uuid();
-                $updated = TRUE;
+                $updated = true;
             }
             if ($updated) {
                 $this->saveSettings(array('uuid' => $uuid));
@@ -79,7 +79,7 @@ class shopSyrrssPlugin extends shopPlugin
             }
             $profile_id = array_search($hash, $uuid);
             if ($profile_id !== false) {
-                $path = self::path($profile_id.'.xml');
+                $path = self::path($profile_id . '.xml');
             }
         }
         return array($path, $profile_id);
