@@ -30,15 +30,17 @@ class shopSyrrssPluginRunController extends waLongActionController
     protected function init()
     {
         $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
-        $Config = waSystem::getInstance()->getConfig();
+
+        /** @var shopConfig $Config */
+        $Config = wa('shop')->getConfig();
         $AppSettings = new waAppSettingsModel();
 
-        /** @var shopSyrrssPlugin */
+        /** @var shopSyrrssPlugin $Plugin */
         $Plugin = waSystem::getInstance()->getPlugin(shopSyrrssPlugin::PLUGIN_ID);
 
         try {
 
-            if(waSystem::getInstance()->getEnv() == 'backend') {
+            if (waSystem::getInstance()->getEnv() == 'backend') {
                 $profile_config = $this->getProfileOptionsFromRequest();
                 $profile_id = $Profile->setConfig($profile_config);
                 $Plugin->getHash($profile_id);
@@ -50,33 +52,33 @@ class shopSyrrssPluginRunController extends waLongActionController
             }
 
             $this->data = array_merge($this->data, array(
-                'domain'=>$profile_config['domain'],
-                'export_unavailable'=>$profile_config["export_zero_stock"],
-                'hash'=>$profile_config['hash'],
-                'memory' => memory_get_peak_usage(),
-                'memory_avg' => memory_get_usage(),
-                'offset' => array('offers'=>0),
-                'path' => array('offers' => shopSyrrssPlugin::path($profile_id . ".xml")),
-                'primary_currency' => $Config->getCurrency(),
-                'processed_count' => 0,
-                'timestamp' => time(),
-                'total_written' => 0,
-                'utm' => ""
+                'domain'             => $profile_config['domain'],
+                'export_unavailable' => $profile_config["export_zero_stock"],
+                'hash'               => $profile_config['hash'],
+                'memory'             => memory_get_peak_usage(),
+                'memory_avg'         => memory_get_usage(),
+                'offset'             => array('offers' => 0),
+                'path'               => array('offers' => shopSyrrssPlugin::path($profile_id . ".xml")),
+                'primary_currency'   => $Config->getCurrency(),
+                'processed_count'    => 0,
+                'timestamp'          => time(),
+                'total_written'      => 0,
+                'utm'                => ""
             ));
 
-            if($AppSettings->get('shop', "ignore_stock_count", 0)) {
+            if ($AppSettings->get('shop', "ignore_stock_count", 0)) {
                 $this->data["export_unavailable"] = 1;
             }
 
-            if(isset($profile_config["utm"]["source"]) && isset($profile_config["utm"]["medium"]) && isset($profile_config["utm"]["campaign"])) {
-                foreach(array("source", "medium", "campaign") as $param) {
-                    $profile_config["utm"][$param]=trim($profile_config["utm"][$param]);
-                    if(empty($profile_config["utm"][$param])) {
+            if (isset($profile_config["utm"]["source"]) && isset($profile_config["utm"]["medium"]) && isset($profile_config["utm"]["campaign"])) {
+                foreach (array("source", "medium", "campaign") as $param) {
+                    $profile_config["utm"][$param] = trim($profile_config["utm"][$param]);
+                    if (empty($profile_config["utm"][$param])) {
                         unset($profile_config["utm"][$param]);
                     }
                 }
-                if(!empty($profile_config["utm"]))
-                $this->data["utm"] = http_build_query(array_map('rawurlencode', $profile_config["utm"]));
+                if (!empty($profile_config["utm"]))
+                    $this->data["utm"] = http_build_query(array_map('rawurlencode', $profile_config["utm"]));
             }
 
             $this->data["count"] = $this->getCollection()->count();
@@ -89,10 +91,10 @@ class shopSyrrssPluginRunController extends waLongActionController
             $this->rss->channel->title = $profile_config['channel_name'];
             $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
             $this->rss->channel->description = $profile_config["channel_description"];
-            $this->rss->channel->generator = "SyrRSS plugin for Shopscript " . $Plugin->getVersion();
+            $this->rss->channel->generator = "SyrRSS plugin for Shop-Script " . $Plugin->getVersion();
 
         } catch (waException $e) {
-            echo json_encode(array('error'=>$e->getMessage()));
+            echo json_encode(array('error' => $e->getMessage()));
         }
     }
 
@@ -100,9 +102,9 @@ class shopSyrrssPluginRunController extends waLongActionController
     {
         static $product_collection;
 
-        if(!$product_collection) {
-            $product_collection = $this->getCollection()->getProducts('*,images,summary,id,name,price,currency,create_datetime,frontend_url', $this->data["processed_count"], 200, FALSE);
-            if(!$product_collection) {
+        if (!$product_collection) {
+            $product_collection = $this->getCollection()->getProducts('*,images,summary,id,name,price,currency,create_datetime,frontend_url', $this->data["processed_count"], 200, false);
+            if (!$product_collection) {
                 $this->data["processed_count"] = $this->data["count"];
             }
         }
@@ -110,9 +112,9 @@ class shopSyrrssPluginRunController extends waLongActionController
         $step = 0;
         $product = array_shift($product_collection);
 
-        while(($step < 50) && $product && $this->data["max_products"] > $this->data["total_written"]) {
+        while (($step < 50) && $product && $this->data["max_products"] > $this->data["total_written"]) {
 
-            if(($product["price"] > 0) && ($this->data["export_unavailable"] || ($product["count"] === NULL) || ($product["count"] > 0))) {
+            if (($product["price"] > 0) && ($this->data["export_unavailable"] || ($product["count"] === null) || ($product["count"] > 0))) {
                 $this->addItem($product);
                 $this->data["total_written"]++;
             }
@@ -122,7 +124,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             $product = array_shift($product_collection);
         }
 
-        return TRUE;
+        return true;
     }
 
     protected function finish($filename)
@@ -154,11 +156,11 @@ class shopSyrrssPluginRunController extends waLongActionController
     protected function isDone()
     {
 
-        if(($this->data["processed_count"] < $this->data["count"]) && ($this->data["total_written"] < $this->data["max_products"])) {
-            return FALSE;
+        if (($this->data["processed_count"] < $this->data["count"]) && ($this->data["total_written"] < $this->data["max_products"])) {
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
     protected function info()
@@ -175,7 +177,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             'memory_avg' => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
         );
 
-        if($this->isDone()) {
+        if ($this->isDone()) {
             $response["report"] = $this->report(); // . $this->validateReport();
         }
 
@@ -191,7 +193,7 @@ class shopSyrrssPluginRunController extends waLongActionController
     {
         $hash = shopImportexportHelper::getCollectionHash();
 
-        return array_merge(array('export_zero_stock'=>0), waRequest::post('config'), array('hash'=>$hash["hash"]));
+        return array_merge(array('export_zero_stock' => 0), waRequest::post('config'), array('hash' => $hash["hash"]));
     }
 
     protected function restore()
@@ -214,12 +216,12 @@ class shopSyrrssPluginRunController extends waLongActionController
 
         $profile_id = waRequest::param('profile_id');
 
-        if(!$profile_id) {
+        if (!$profile_id) {
             throw new waException("Invalid profile", 404);
         }
 
         $profile = $Profile->getConfig($profile_id);
-        if(!$profile) {
+        if (!$profile) {
             throw new waException("Invalid profile", 404);
         }
 
@@ -234,10 +236,10 @@ class shopSyrrssPluginRunController extends waLongActionController
         $success = false;
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
-                if ($domain.'/'.$route['url'] == $this->data['domain']) {
+                if ($domain . '/' . $route['url'] == $this->data['domain']) {
                     $routing->setRoute($route, $domain);
                     waRequest::setParam($route);
-                    $this->data['base_url'] = parse_url('http://'.preg_replace('@https?://@', '', $domain), PHP_URL_HOST);
+                    $this->data['base_url'] = parse_url('http://' . preg_replace('@https?://@', '', $domain), PHP_URL_HOST);
                     $success = true;
                     break;
                 }
@@ -262,9 +264,9 @@ class shopSyrrssPluginRunController extends waLongActionController
         if (!$this->collection) {
             $options = array(
                 'frontend' => true,
-                'params'=>array(
-                    'sort'=>'create_datetime',
-                    'order'=>'desc'
+                'params'   => array(
+                    'sort'  => 'create_datetime',
+                    'order' => 'desc'
                 )
             );
 
@@ -300,9 +302,9 @@ class shopSyrrssPluginRunController extends waLongActionController
     private function getTempPath($file = null)
     {
         if (!$file) {
-            $file = $this->processId.'.xml';
+            $file = $this->processId . '.xml';
         }
-        return waSystem::getInstance()->getTempPath('plugins/syrrss/', 'shop').$file;
+        return waSystem::getInstance()->getTempPath('plugins/syrrss/', 'shop') . $file;
     }
 
     /**
@@ -342,26 +344,26 @@ class shopSyrrssPluginRunController extends waLongActionController
         $item->pubDate = $create_date->format("r");
 
         /** @todo Process more tham one image, ask user about maximum of images to export */
-        if(isset($product["images"])) {
+        if (isset($product["images"])) {
             $image = array_shift($product["images"]);
-            $image_tag = '<img src="'.
-                    'http://'.
-                    ifempty($this->data['base_url'], 'localhost').
-                    shopImage::getUrl($image, $size).
-                    '" alt="' .
-                    htmlentities($product["name"], ENT_QUOTES, 'UTF-8').
-                    '">';
+            $image_tag = '<img src="' .
+                'http://' .
+                ifempty($this->data['base_url'], 'localhost') .
+                shopImage::getUrl($image, $size) .
+                '" alt="' .
+                htmlentities($product["name"], ENT_QUOTES, 'UTF-8') .
+                '">';
         }
 
         // No need to add empty description tag if there's no images nor summary
-        if(!empty($image_tag) || !empty($product["summary"])) {
+        if (!empty($image_tag) || !empty($product["summary"])) {
             // FCUK, SimpleXML doesn't support CDATA!!!!!!!
             $cdata_description = $item->addChild('description');
 
             $description = "{$image_tag}<p>" .
-                    htmlentities(strip_tags($product["summary"]), ENT_QUOTES, 'UTF-8').
-                    '</p>'.
-                    $this->getItemPrice($product);
+                htmlentities(strip_tags($product["summary"]), ENT_QUOTES, 'UTF-8') .
+                '</p>' .
+                $this->getItemPrice($product);
 
             $cdata_dom_node = dom_import_simplexml($cdata_description);
             $dom_node_owner = $cdata_dom_node->ownerDocument;
@@ -381,10 +383,10 @@ class shopSyrrssPluginRunController extends waLongActionController
         $url = preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
 
         if ($this->data['utm']) {
-            $url .= (strpos($url, '?') ? '&' : '?').$this->data['utm'];
+            $url .= (strpos($url, '?') ? '&' : '?') . $this->data['utm'];
         }
 
-        return 'http://'.ifempty($this->data['base_url'], 'localhost').$url;
+        return 'http://' . ifempty($this->data['base_url'], 'localhost') . $url;
     }
 
     /**
@@ -401,17 +403,17 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     private function validate()
     {
-        $libxml_internal_errors = libxml_use_internal_errors(TRUE);
+        $libxml_internal_errors = libxml_use_internal_errors(true);
         $this->loadRss($this->data['path']['offers']);
 
-        if(!$this->rss) {
+        if (!$this->rss) {
 
             $this->data["error"] = array();
-            $err=array();
+            $err = array();
 
-            foreach(libxml_get_errors() as $error) {
+            foreach (libxml_get_errors() as $error) {
                 $this->data["error"][] = array(
-                    "level" => "error",
+                    "level"   => "error",
                     "message" => "#{$error->code} [{$error->line}:{$error->column}] {$error->message}"
                 );
                 $err[] = "#{$error->code} [{$error->line}:{$error->column}] {$error->message}";
@@ -438,7 +440,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
             $interval = sprintf(_wp('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
-            $report .= ' '.sprintf(_wp('(total time: %s)'), $interval);
+            $report .= ' ' . sprintf(_wp('(total time: %s)'), $interval);
         }
         $report .= '</div>';
 
