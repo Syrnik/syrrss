@@ -14,7 +14,7 @@
 class shopSyrrssPluginRunController extends waLongActionController
 {
 
-    /** @var SimpleXmlElement */
+    /** @var DOMDocument */
     private $rss;
 
     /** @var shopProductsCollection */
@@ -86,12 +86,12 @@ class shopSyrrssPluginRunController extends waLongActionController
 
             $this->initRouting();
 
-            $this->rss = $this->initRss();
-
-            $this->rss->channel->title = $profile_config['channel_name'];
-            $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
-            $this->rss->channel->description = $profile_config["channel_description"];
-            $this->rss->channel->generator = "SyrRSS plugin for Shop-Script " . $Plugin->getVersion();
+            $this->rss = $this->initRss(
+                $profile_config['channel_name'],
+                preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true)),
+                $profile_config["channel_description"],
+                "SyrRSS plugin for Shop-Script " . $Plugin->getVersion()
+            );
 
         } catch (waException $e) {
             echo json_encode(array('error' => $e->getMessage()));
@@ -286,13 +286,43 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * @return SimpleXMLElement
+     * @return DOMDocument
      */
-    private function initRss()
+    private function initRss($title_str, $link_str, $description_str, $generator_str, array $options = array())
     {
-        $rss = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><rss  version="2.0"><channel /></rss>');
+        $options = array_merge(['yaturbo' => false], $options);
 
-        return $rss;
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $rss = $dom->createElement('rss');
+        $dom->appendChild($rss);
+        $rss->setAttribute('version', '2.0');
+
+        if ($options['yaturbo']) {
+            $rss->setAttribute('xmlns:yandex', 'http://news.yandex.ru');
+            $rss->setAttribute('xmlns:media', 'http://search.yahoo.com/mrss/');
+            $rss->setAttribute('xmlns:turbo', 'http://turbo.yandex.ru');
+        }
+
+        $channel = $dom->createElement('channel');
+        $rss->appendChild($channel);
+
+        $title = $dom->createElement('title');
+        $title->appendChild(new DOMText($title_str));
+        $channel->appendChild($title);
+
+        $link = $dom->createElement('link');
+        $link->appendChild(new DOMText($link_str));
+        $channel->appendChild($link);
+
+        $description = $dom->createElement('description');
+        $description->appendChild(new DOMText($description_str));
+        $channel->appendChild($description);
+
+        $generator = $dom->createElement('generator');
+        $generator->appendChild(new DOMText($generator_str));
+        $channel->appendChild($generator);
+
+        return $dom;
     }
 
     /**
@@ -319,8 +349,8 @@ class shopSyrrssPluginRunController extends waLongActionController
         }
 
         if (!$this->rss) {
-            $this->rss = simplexml_load_file($path);
-            if (!$this->rss) {
+            $this->rss = new DOMDocument();
+            if (!$this->rss->load($path)) {
                 throw new waException("Error while read saved XML");
             }
         }
@@ -338,10 +368,19 @@ class shopSyrrssPluginRunController extends waLongActionController
         $image_tag = "";
         $create_date = new DateTime($product["create_datetime"]);
 
-        $item = $this->rss->channel->addChild("item");
-        $item->title = strip_tags($product["name"]);
-        $item->link = $this->productUrl($product);
-        $item->pubDate = $create_date->format("r");
+        $channel = $this->rss->getElementsByTagName('channel')->item(0);
+        $item = new DOMElement('item');
+        $channel->appendChild($item);
+
+        $title = new DOMElement('title');
+        $title->appendChild(new DOMText(strip_tags($product['name'])));
+        $item->appendChild($title);
+
+        $link = new DOMElement('link');
+        $link->appendChild(new DOMText($this->productUrl($product)));
+        $item->appendChild($link);
+
+        $link->appendChild(new DOMElement('pubDate', $create_date->format('r')));
 
         /** @todo Process more tham one image, ask user about maximum of images to export */
         if (isset($product["images"])) {
@@ -369,6 +408,15 @@ class shopSyrrssPluginRunController extends waLongActionController
             $dom_node_owner = $cdata_dom_node->ownerDocument;
             $cdata_dom_node->appendChild($dom_node_owner->createCDATASection($description));
         }
+
+    }
+
+    private function domProduct(array $product)
+    {
+        /** @todo Ask user about image size */
+        $size = "210x0";
+        $image_tag = "";
+        $create_date = new DateTime($product["create_datetime"]);
 
     }
 

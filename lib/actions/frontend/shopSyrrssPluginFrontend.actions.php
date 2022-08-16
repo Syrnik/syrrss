@@ -8,6 +8,7 @@ class shopSyrrssPluginFrontendActions extends waActions
 {
     public function feedAction()
     {
+        /** @var shopSyrrssPlugin $plugin */
         $plugin = wa()->getPlugin('syrrss');
 
         $profile_helper = new shopImportexportHelper('syrrss');

@@ -5,14 +5,7 @@
 86400 => "Автоматически, но не чаще чем раз в день",
 604800 => "Автоматически, но не чаще чем раз в неделю"
 ]}
-{$max_products_options = [
-0 => _wp("All"),
-15 => _wp("Last 15"),
-25 => _wp("Last 25"),
-50 => _wp("Last 50"),
-100 => _wp("Last 100")
-]
-}
+{$max_products_options = [0 => _wp("All"), 15 => "15", 25 => "25", 50 => "50", 100 => "100" ]}
 <div class="block double-padded" id="s-syrrss-form">
     <h1>{_wp("RSS Feed of Products")}</h1>
     <p>Экспорт товаров в RSS-поток. Товары упорядочены по дате добавления, самый первый — самый новый.</p>
@@ -137,6 +130,15 @@
                             </p>
                         </div>
                     </div>
+                    <div class="field">
+                        <div class="name"><label for="s-plugin-syrrss-config-export-zero-stock">Остатки</label></div>
+                        <div class="value no-shift"><label for="s-plugin-syrrss-config-export-zero-stock">
+                                <input name="config[export_zero_stock]" id="s-plugin-syrrss-config-export-zero-stock" type="checkbox" value="1"{if !empty($profile.config.export_zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}> Выгружать товары с нулевым остатком
+                            </label>
+                            <p class="hint">Добавлять в ленту товары, которых нет в наличии</p>
+                            {if !empty($app_settings.ignore_stock_count)}<p class="hint">Для отключения этой настройки в настройках складов должен быть выбран вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе.</p>{/if}
+                        </div>
+                    </div>
                     <div class="clear-left"></div>
                 </div>
 
@@ -159,15 +161,6 @@
                         </div>
                     </div>
                     <div class="field">
-                        <div class="name"><label for="s-plugin-syrrss-config-export-zero-stock">Остатки</label></div>
-                        <div class="value no-shift"><label for="s-plugin-syrrss-config-export-zero-stock">
-                            <input name="config[export_zero_stock]" id="s-plugin-syrrss-config-export-zero-stock" type="checkbox" value="1"{if !empty($profile.config.export_zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}> Выгружать товары с нулевым остатком
-                            </label>
-                            <p class="hint">Добавлять в ленту товары, которых нет в наличии</p>
-                            {if !empty($app_settings.ignore_stock_count)}<p class="hint">Для отключения этой настройки в настройках складов должен быть выбран вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе.</p>{/if}
-                        </div>
-                    </div>
-                    <div class="field">
                         <div class="name">UTM-метки</div>
                         <div class="value no-shift">
                             Источник (utm_source):<br>
@@ -185,7 +178,12 @@
                             <p class="hint">Ко всем адресам (URL), содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам.  Если вы не используете UTM-метки, просто оставьте поля пустыми.</p>
                         </div>
                     </div>
-            
+                    <div class="field">
+                        <div class="name">Добавить разметку для Турбо-страниц Яндекса</div>
+                        <div class="value no-shift">
+                            <input type="checkbox" name="config[yaturbo][state]" value="1"{if isset($profile.config.yaturbo) && $profile.config.yaturbo.state} checked{/if}>
+                        </div>
+                    </div>
 
                 </div>
                 <div class="clear-left"></div>
