@@ -5,6 +5,7 @@
  */
 
 declare(strict_types=1);
+
 /**
  * Description of shopSyrrssPluginBackendSetup
  * @ControllerAction backend/setup
@@ -24,6 +25,9 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
     /** @var waAppSettingsModel */
     private $AppSettings;
 
+    /** @var shopSyrrssPlugin */
+    protected $plugin;
+
     /**
      * @param $params
      * @throws waException
@@ -35,6 +39,12 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
         $this->Routing = waSystem::getInstance()->getRouting();
         $this->ShopConfig = waSystem::getInstance("shop")->getConfig();
         $this->AppSettings = new waAppSettingsModel();
+    }
+
+    protected function preExecute()
+    {
+        parent::preExecute();
+        $this->plugin = wa()->getPlugin(shopSyrrssPlugin::PLUGIN_ID);
     }
 
     /**
@@ -100,7 +110,11 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
         return $profile;
     }
 
-    private function setRoutes($current_domain = "")
+    /**
+     * @param string $current_domain
+     * @return string
+     */
+    private function setRoutes(string $current_domain = ""): string
     {
         $domain_routes = $this->Routing->getByApp("shop");
 
@@ -135,26 +149,15 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
 
             if ($info["exists"]) {
                 $info["mtime"] = filemtime($feed_file);
-                $info["url"] = $this->Routing->getUrl("shop/frontend/feed", array("plugin" => shopSyrrssPlugin::PLUGIN_ID, "hash" => $this->plugin()->getHash($profile["id"])), true);
+                $info["url"] = $this->Routing->getUrl(
+                    "shop/frontend/feed",
+                    [
+                        "plugin" => shopSyrrssPlugin::PLUGIN_ID,
+                        "hash"   => $this->plugin->getHash((int)$profile["id"])
+                    ], true);
             }
         }
 
         return $info;
     }
-
-    /**
-     * Singletons suck!
-     *
-     * @return shopSyrrssPlugin
-     * @throws waException
-     */
-    private function plugin(): shopSyrrssPlugin
-    {
-        static $plugin;
-        if (!$plugin) {
-            $plugin = wa()->getPlugin(shopSyrrssPlugin::PLUGIN_ID);
-        }
-        return $plugin;
-    }
-
 }

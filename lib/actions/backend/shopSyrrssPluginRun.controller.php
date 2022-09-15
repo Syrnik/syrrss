@@ -73,9 +73,7 @@ class shopSyrrssPluginRunController extends waLongActionController
                 'utm'                => ""
             ));
 
-            if ($AppSettings->get('shop', "ignore_stock_count", 0)) {
-                $this->data["export_unavailable"] = 1;
-            }
+            if ($AppSettings->get('shop', "ignore_stock_count", 0)) $this->data["export_unavailable"] = 1;
 
             if (isset($profile_config["utm"]["source"]) && isset($profile_config["utm"]["medium"]) && isset($profile_config["utm"]["campaign"])) {
                 foreach (array("source", "medium", "campaign") as $param) {
@@ -231,9 +229,7 @@ class shopSyrrssPluginRunController extends waLongActionController
      */
     protected function save()
     {
-        if ($this->rss) {
-            $this->rss->asXML($this->getTempPath());
-        }
+        if ($this->rss) $this->rss->save($this->getTempPath());
     }
 
     /**
@@ -339,9 +335,9 @@ class shopSyrrssPluginRunController extends waLongActionController
         $rss->setAttribute('version', '2.0');
 
         if ($options['yaturbo']) {
-            $rss->setAttribute('xmlns:yandex', 'http://news.yandex.ru');
-            $rss->setAttribute('xmlns:media', 'http://search.yahoo.com/mrss/');
-            $rss->setAttribute('xmlns:turbo', 'http://turbo.yandex.ru');
+            $dom->createAttributeNS('http://news.yandex.ru', 'yandex');
+            $dom->createAttributeNS('http://search.yahoo.com/mrss/', 'media');
+            $dom->createAttributeNS('http://turbo.yandex.ru', 'turbo');
         }
 
         $channel = $dom->createElement('channel');
@@ -383,13 +379,12 @@ class shopSyrrssPluginRunController extends waLongActionController
      */
     private function loadRss(string $path = null)
     {
-        if (!$path) {
-            $path = $this->getTempPath();
-        }
+        if (!$path) $path = $this->getTempPath();
 
         if (!$this->rss) {
             $this->rss = new DOMDocument();
             if (!$this->rss->load($path)) {
+                waLog::log('Error loading ' . $path);
                 throw new waException("Error while read saved XML");
             }
         }
@@ -400,6 +395,7 @@ class shopSyrrssPluginRunController extends waLongActionController
      *
      * @param array $product
      * @throws DOMException|waException
+     * @throws Exception
      */
     private function addItem(array $product)
     {
@@ -409,25 +405,18 @@ class shopSyrrssPluginRunController extends waLongActionController
         $create_date = new DateTime($product["create_datetime"]);
 
         $channel = $this->rss->getElementsByTagName('channel')->item(0);
-        $item = new DOMElement('item');
-        $channel->appendChild($item);
+        $item = $this->rss->createElement('item');
 
-        $title = new DOMElement('title');
-        $title->appendChild(new DOMText(strip_tags($product['name'])));
-        $item->appendChild($title);
-
-        $link = new DOMElement('link');
-        $link->appendChild(new DOMText($this->productUrl($product)));
-        $item->appendChild($link);
-
-        $link->appendChild(new DOMElement('pubDate', $create_date->format('r')));
+        $item->appendChild($this->rss->createElement('title', strip_tags($product['name'])));
+        $item->appendChild($this->rss->createElement('link', $this->productUrl($product)));
+        $item->appendChild($this->rss->createElement('pubDate', $create_date->format('r')));
 
         /** @todo Process more tham one image, ask user about maximum of images to export */
         if (isset($product["images"])) {
             $image = array_shift($product["images"]);
             $image_tag = '<img src="' .
                 'http://' .
-                ifempty($this->data['base_url'], 'localhost') .
+                ($this->data['base_url'] ?: 'localhost') .
                 shopImage::getUrl($image, $size) .
                 '" alt="' .
                 htmlentities($product["name"], ENT_QUOTES, 'UTF-8') .
@@ -436,33 +425,17 @@ class shopSyrrssPluginRunController extends waLongActionController
 
         // No need to add empty description tag if there's no images nor summary
         if (!empty($image_tag) || !empty($product["summary"])) {
-            // FCUK, SimpleXML doesn't support CDATA!!!!!!!
-            $cdata_description = $item->addChild('description');
+            $el_description = $this->rss->createElement('description');
 
             $description = "{$image_tag}<p>" .
                 htmlentities(strip_tags($product["summary"]), ENT_QUOTES, 'UTF-8') .
                 '</p>' .
                 $this->getItemPrice($product);
 
-            $cdata_dom_node = dom_import_simplexml($cdata_description);
-            $dom_node_owner = $cdata_dom_node->ownerDocument;
-            $cdata_dom_node->appendChild($dom_node_owner->createCDATASection($description));
+            $el_description->appendChild($this->rss->createCDATASection($description));
+            $item->appendChild($el_description);
         }
-
-    }
-
-    /**
-     * @param array $product
-     * @return void
-     * @throws Exception
-     */
-    private function domProduct(array $product)
-    {
-        /** @todo Ask user about image size */
-        $size = "210x0";
-        $image_tag = "";
-        $create_date = new DateTime($product["create_datetime"]);
-
+        $channel->appendChild($item);
     }
 
     /**
