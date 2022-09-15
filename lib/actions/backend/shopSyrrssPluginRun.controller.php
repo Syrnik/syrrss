@@ -452,6 +452,11 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     }
 
+    /**
+     * @param array $product
+     * @return void
+     * @throws Exception
+     */
     private function domProduct(array $product)
     {
         /** @todo Ask user about image size */
@@ -468,7 +473,9 @@ class shopSyrrssPluginRunController extends waLongActionController
      */
     private function productUrl(array $product): string
     {
-        $url = preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
+        $url = preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', function ($a) {
+            return rawurlencode(reset($a));
+        }, $product['frontend_url']);
 
         if ($this->data['utm']) {
             $url .= (strpos($url, '?') ? '&' : '?') . $this->data['utm'];
@@ -478,17 +485,9 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * Old versions of PHP sux
-     *
-     * @param array $a
-     * @return string
-     * @deprecated since version 1.0.0
+     * @return void
+     * @throws waException
      */
-    private static function _rawurlencode($a)
-    {
-        return rawurlencode(reset($a));
-    }
-
     private function validate()
     {
         $libxml_internal_errors = libxml_use_internal_errors(true);
