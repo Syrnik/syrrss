@@ -481,7 +481,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             $url .= (strpos($url, '?') ? '&' : '?') . $this->data['utm'];
         }
 
-        return 'http://' . ifempty($this->data['base_url'], 'localhost') . $url;
+        return 'http://' . ($this->data['base_url'] ?: 'localhost') . $url;
     }
 
     /**
