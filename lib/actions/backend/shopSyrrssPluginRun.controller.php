@@ -107,7 +107,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     /**
      * @return bool
-     * @throws waException
+     * @throws waException|DOMException
      */
     protected function step(): bool
     {
@@ -141,6 +141,7 @@ class shopSyrrssPluginRunController extends waLongActionController
     /**
      * @param $filename
      * @return bool
+     * @throws waException
      */
     protected function finish($filename): bool
     {
@@ -170,15 +171,15 @@ class shopSyrrssPluginRunController extends waLongActionController
     protected function isDone(): bool
     {
 
-        if (($this->data["processed_count"] < $this->data["count"]) && ($this->data["total_written"] < $this->data["max_products"])) {
+        if (($this->data["processed_count"] < $this->data["count"]) && ($this->data["total_written"] < $this->data["max_products"]))
             return false;
-        }
 
         return true;
     }
 
     /**
      * @return void
+     * @throws waException
      */
     protected function info()
     {
@@ -226,6 +227,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     /**
      * @return void
+     * @throws waException
      */
     protected function save()
     {
@@ -365,15 +367,12 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * @param string|null $file
      * @return string
      * @throws waException
      */
-    private function getTempPath(string $file = null): string
+    private function getTempPath(): string
     {
-        if (!$file) {
-            $file = $this->processId . '.xml';
-        }
+        $file = $this->processId . '.xml';
         return waSystem::getInstance()->getTempPath('plugins/syrrss/', 'shop') . $file;
     }
 
@@ -400,7 +399,7 @@ class shopSyrrssPluginRunController extends waLongActionController
      * Добавляет item в channel
      *
      * @param array $product
-     * @throws DOMException
+     * @throws DOMException|waException
      */
     private function addItem(array $product)
     {
@@ -473,7 +472,7 @@ class shopSyrrssPluginRunController extends waLongActionController
      */
     private function productUrl(array $product): string
     {
-        $url = preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', function ($a) {
+        $url = preg_replace_callback('@([^\w_/-?%&]+)@i', function ($a) {
             return rawurlencode(reset($a));
         }, $product['frontend_url']);
 
