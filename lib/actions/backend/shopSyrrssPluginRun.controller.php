@@ -1,10 +1,10 @@
 <?php
 /**
- * @author Serge Rodovnichenko <sergerod@gmail.com>
- *
+ * @copyright Serge Rodovnichenko <serge@syrnik.com>
  * @license http://www.webasyst.com/terms/#eula Webasyst Commercial
- * @version 1.0.3
+ * @noinspection PhpComposerExtensionStubsInspection
  */
+declare(strict_types=1);
 
 /**
  * RSS feed creation
@@ -20,6 +20,9 @@ class shopSyrrssPluginRunController extends waLongActionController
     /** @var shopProductsCollection */
     private $collection;
 
+    /**
+     * @return void
+     */
     protected function preExecute()
     {
         parent::preExecute();
@@ -27,6 +30,10 @@ class shopSyrrssPluginRunController extends waLongActionController
         $this->getResponse()->addHeader('Content-type', 'application/json')->sendHeaders();
     }
 
+    /**
+     * @return void
+     * @throws waException|DOMException
+     */
     protected function init()
     {
         $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
@@ -98,7 +105,11 @@ class shopSyrrssPluginRunController extends waLongActionController
         }
     }
 
-    protected function step()
+    /**
+     * @return bool
+     * @throws waException
+     */
+    protected function step(): bool
     {
         static $product_collection;
 
@@ -127,10 +138,13 @@ class shopSyrrssPluginRunController extends waLongActionController
         return true;
     }
 
-    protected function finish($filename)
+    /**
+     * @param $filename
+     * @return bool
+     */
+    protected function finish($filename): bool
     {
         $result = !!$this->getRequest()->post('cleanup');
-
 
         try {
             if ($result) {
@@ -150,10 +164,10 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * @see waLongActionController::isDone()
      * @return boolean
+     * @see waLongActionController::isDone()
      */
-    protected function isDone()
+    protected function isDone(): bool
     {
 
         if (($this->data["processed_count"] < $this->data["count"]) && ($this->data["total_written"] < $this->data["max_products"])) {
@@ -163,6 +177,9 @@ class shopSyrrssPluginRunController extends waLongActionController
         return true;
     }
 
+    /**
+     * @return void
+     */
     protected function info()
     {
         $interval = empty($this->data["timestamp"]) ? 0 : time() - $this->data['timestamp'];
@@ -189,13 +206,17 @@ class shopSyrrssPluginRunController extends waLongActionController
      *
      * @return array
      */
-    private function getProfileOptionsFromRequest()
+    private function getProfileOptionsFromRequest(): array
     {
         $hash = shopImportexportHelper::getCollectionHash();
 
         return array_merge(array('export_zero_stock' => 0), waRequest::post('config'), array('hash' => $hash["hash"]));
     }
 
+    /**
+     * @return void
+     * @throws waException
+     */
     protected function restore()
     {
         $this->loadRss();
@@ -203,6 +224,9 @@ class shopSyrrssPluginRunController extends waLongActionController
         $this->collection = null;
     }
 
+    /**
+     * @return void
+     */
     protected function save()
     {
         if ($this->rss) {
@@ -210,7 +234,11 @@ class shopSyrrssPluginRunController extends waLongActionController
         }
     }
 
-    private function getProfile()
+    /**
+     * @return array
+     * @throws waException
+     */
+    private function getProfile(): array
     {
         $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
 
@@ -228,6 +256,10 @@ class shopSyrrssPluginRunController extends waLongActionController
         return $profile;
     }
 
+    /**
+     * @return void
+     * @throws waException
+     */
     private function initRouting()
     {
         $routing = wa()->getRouting();
@@ -256,10 +288,11 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     /**
      *
-     * @internal param string $hash
      * @return shopProductsCollection
+     * @throws waException
+     * @internal param string $hash
      */
-    private function getCollection()
+    private function getCollection(): shopProductsCollection
     {
         if (!$this->collection) {
             $options = array(
@@ -276,7 +309,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             }
 
             // Чтобы отключить настройку сортировки отсутствующих и недоступных товаров
-            // Почему это это через параметр запроса-то???!!!
+            // Почему это через параметр запроса-то???!!!
             // Неужели нельзя в $options передавать?
             waRequest::setParam('drop_out_of_stock', 0);
 
@@ -286,9 +319,15 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
+     * @param string $title_str
+     * @param string $link_str
+     * @param string $description_str
+     * @param string $generator_str
+     * @param array $options
      * @return DOMDocument
+     * @throws DOMException
      */
-    private function initRss($title_str, $link_str, $description_str, $generator_str, array $options = array())
+    private function initRss(string $title_str, string $link_str, string $description_str, string $generator_str, array $options = []): DOMDocument
     {
         $options = array_merge(['yaturbo' => false], $options);
 
@@ -326,10 +365,11 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * @param string $file
+     * @param string|null $file
      * @return string
+     * @throws waException
      */
-    private function getTempPath($file = null)
+    private function getTempPath(string $file = null): string
     {
         if (!$file) {
             $file = $this->processId . '.xml';
@@ -339,10 +379,10 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     /**
      *
-     * @param string $path
+     * @param string|null $path
      * @throws waException
      */
-    private function loadRss($path = null)
+    private function loadRss(string $path = null)
     {
         if (!$path) {
             $path = $this->getTempPath();
@@ -360,8 +400,9 @@ class shopSyrrssPluginRunController extends waLongActionController
      * Добавляет item в channel
      *
      * @param array $product
+     * @throws DOMException
      */
-    private function addItem($product)
+    private function addItem(array $product)
     {
         /** @todo Ask user about image size */
         $size = "210x0";
@@ -425,9 +466,8 @@ class shopSyrrssPluginRunController extends waLongActionController
      * @param array $product
      * @return string
      */
-    private function productUrl($product)
+    private function productUrl(array $product): string
     {
-//        $url = version_compare(PHP_VERSION, '5.3.0', ">=") ? preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', function($a){return rawurlencode(reset($a));}, $product['frontend_url']) : preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
         $url = preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
 
         if ($this->data['utm']) {
@@ -440,9 +480,9 @@ class shopSyrrssPluginRunController extends waLongActionController
     /**
      * Old versions of PHP sux
      *
-     * @deprecated since version 1.0.0
      * @param array $a
      * @return string
+     * @deprecated since version 1.0.0
      */
     private static function _rawurlencode($a)
     {
@@ -475,10 +515,11 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * @todo Fuck out a presentation layer from the Controller to the View!
      * @return string
+     * @throws waException
+     * @todo Fuck out a presentation layer from the Controller to the View!
      */
-    protected function report()
+    protected function report(): string
     {
         $report = '<div class="successmsg">';
         $report .= sprintf('<i class="icon16 yes"></i>%s ', _wp('Exported'));
@@ -496,19 +537,19 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     *
      * @param array $product
      * @return string
+     * @throws waException
      */
-    private function getItemPrice($product)
+    private function getItemPrice(array $product): string
     {
 
         if (isset($product["price"]) && isset($product["currency"])) {
             return "<p>" .
-            _wp("Price:") .
-            " " .
-            waCurrency::format("%{s}", $product["price"], $this->data["primary_currency"]) .
-            "</p>";
+                _wp("Price:") .
+                " " .
+                waCurrency::format("%{s}", $product["price"], $this->data["primary_currency"]) .
+                "</p>";
         }
 
         return "";

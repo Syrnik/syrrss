@@ -1,4 +1,4 @@
 <?php
-return array(
-    'README.md'
-);
+return [
+    'README.md',
+];

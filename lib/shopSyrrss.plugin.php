@@ -1,17 +1,17 @@
 <?php
 /**
- * This file is a part of "RSS Feed of Products" plugin for ShopScript 5
+ * This file is a part of "RSS Feed of Products" plugin for ShopScript
  *
- * @author Serge Rodovnichenko <sergerod@gmail.com>
+ * @author Serge Rodovnichenko <serge@syrnik.com>
  *
  * @license http://www.webasyst.com/terms/#eula Webasyst Commercial
  * @version 1.0.3
  */
 
+declare(strict_types=1);
+
 /**
- * Main plugin
- *
- * @package webasyst.shop.plugin.syrrss
+ * Main plugin class
  */
 class shopSyrrssPlugin extends shopPlugin
 {
@@ -22,19 +22,20 @@ class shopSyrrssPlugin extends shopPlugin
      *
      * @param string $file
      * @return string
+     * @throws waException
      */
-    public static function path($file = 'rss.xml')
+    public static function path(string $file = 'rss.xml'): string
     {
-        $path = waSystem::getInstance()->getDataPath('plugins/syrrss/' . $file, false, 'shop', true);
-        return $path;
+        return waSystem::getInstance()->getDataPath('plugins/syrrss/' . $file, false, 'shop');
     }
 
     /**
      *
      * @param int $profile_id
-     * @return string
+     * @return string|null
+     * @throws waException
      */
-    public function getHash($profile_id = 0)
+    public function getHash(int $profile_id = 0): ?string
     {
         $uuid = $this->getSettings('uuid');
         if (!is_array($uuid)) {
@@ -61,10 +62,16 @@ class shopSyrrssPlugin extends shopPlugin
             }
         }
 
-        return ifset($uuid[$profile_id]);
+        return $uuid[$profile_id] ?? null;
     }
 
-    public function getInfoByHash($hash)
+    /**
+     * @param string $hash
+     * @return array
+     * @throws waException
+     * @noinspection DuplicatedCode
+     */
+    public function getInfoByHash(string $hash): array
     {
         $path = null;
         $uuid = $this->getSettings('uuid');

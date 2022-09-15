@@ -5,12 +5,12 @@ return array(
         'strict' => true,
         'value'  => 1
     ),
-    'php.SimpleXML' => array(
+    'php.simplexml' => array(
         'strict' => true,
         'value'  => 1
     ),
     'php'           => array(
-        'version' => '>=5.6.0',
+        'version' => '>=7.2.0',
         'strict'  => true
     ),
     'app.shop'      => array(

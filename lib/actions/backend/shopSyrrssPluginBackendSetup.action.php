@@ -1,9 +1,13 @@
 <?php
+/**
+ * @copyright  Serge Rodovnichenko <serge@syrnik.com>
+ * @license http://www.webasyst.com/terms/#eula Webasyst Commercial
+ */
 
+declare(strict_types=1);
 /**
  * Description of shopSyrrssPluginBackendSetup
- *
- * @author serge
+ * @ControllerAction backend/setup
  */
 class shopSyrrssPluginBackendSetupAction extends waViewAction
 {
@@ -20,6 +24,10 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
     /** @var waAppSettingsModel */
     private $AppSettings;
 
+    /**
+     * @param $params
+     * @throws waException
+     */
     public function __construct($params = null)
     {
         parent::__construct($params);
@@ -29,6 +37,10 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
         $this->AppSettings = new waAppSettingsModel();
     }
 
+    /**
+     * @return void
+     * @throws waException
+     */
     public function execute()
     {
         $settlements = $this->getSettlements();
@@ -37,9 +49,9 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
         $current_domain = $profile["config"]["domain"];
         $profile["config"]["domain"] = $this->setRoutes($current_domain);
         $info = $this->getXmlFileInfo($profile);
-        $app_settings = array(
+        $app_settings = [
             'ignore_stock_count' => $this->AppSettings->get("shop", "ignore_stock_count", 0)
-        );
+        ];
 
         $this->view->assign('primary_currency', $this->ShopConfig->getCurrency());
         $this->view->assign(compact("app_settings", "current_domain", "info", "profile", "profiles", "settlements"));
@@ -50,9 +62,8 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
      *
      * @return array
      */
-    private function getSettlements()
+    private function getSettlements(): array
     {
-
         $settlements = array();
         $domain_routes = $this->Routing->getByApp("shop");
 
@@ -68,8 +79,9 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
     /**
      *
      * @return array
+     * @throws waException
      */
-    private function getProfile()
+    private function getProfile(): array
     {
         $profile = $this->Profile->getConfig();
         $profile["config"] += array(
@@ -81,7 +93,7 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
             "channel_description" => _wp("New products")
         );
 
-        if (!isset($profile["config"]["channel_name"]) || empty($profile["config"]["channel_name"])) {
+        if (!($profile["config"]["channel_name"] ?? null)) {
             $profile["config"]["channel_name"] = sprintf(_wp("Newest products in %s store"), $this->ShopConfig->getGeneralSettings("name"));
         }
 
@@ -109,10 +121,11 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
 
     /**
      *
-     * @param array $profile массив с профилем
+     * @param array $profile Массив с профилем
      * @return array Информация о файле с фидом
+     * @throws waException
      */
-    private function getXmlFileInfo($profile)
+    private function getXmlFileInfo(array $profile): array
     {
         $info = array('mtime' => null, 'exists' => null, "url" => null);
 
@@ -133,8 +146,9 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
      * Singletons suck!
      *
      * @return shopSyrrssPlugin
+     * @throws waException
      */
-    private function plugin()
+    private function plugin(): shopSyrrssPlugin
     {
         static $plugin;
         if (!$plugin) {
