@@ -100,7 +100,9 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
             "hash"                => "",
             "lifetime"            => 0,
             "max_products"        => 15,
-            "channel_description" => _wp("New products")
+            "channel_description" => _wp("New products"),
+            "image_size"          => "210x0",
+            "use_https"           => "1"
         );
 
         if (!($profile["config"]["channel_name"] ?? null)) {
