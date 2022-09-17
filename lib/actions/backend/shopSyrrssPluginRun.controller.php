@@ -2,7 +2,7 @@
 /**
  * @copyright Serge Rodovnichenko <serge@syrnik.com>
  * @license http://www.webasyst.com/terms/#eula Webasyst Commercial
- * @noinspection PhpComposerExtensionStubsInspection
+ * @noinspection PhpComposerExtensionStubsInspection, HttpUrlsUsage, DuplicatedCode
  */
 declare(strict_types=1);
 
@@ -26,7 +26,6 @@ class shopSyrrssPluginRunController extends waLongActionController
     protected function preExecute()
     {
         parent::preExecute();
-
         $this->getResponse()->addHeader('Content-type', 'application/json')->sendHeaders();
     }
 
@@ -70,7 +69,8 @@ class shopSyrrssPluginRunController extends waLongActionController
                 'processed_count'    => 0,
                 'timestamp'          => time(),
                 'total_written'      => 0,
-                'utm'                => ""
+                'utm'                => "",
+                'image_size'         => $profile_config['image_size'] ?? "210x0"
             ));
 
             if ($AppSettings->get('shop', "ignore_stock_count", 0)) $this->data["export_unavailable"] = 1;
@@ -324,6 +324,7 @@ class shopSyrrssPluginRunController extends waLongActionController
      * @param array $options
      * @return DOMDocument
      * @throws DOMException
+     * @noinspection PhpSameParameterValueInspection
      */
     private function initRss(string $title_str, string $link_str, string $description_str, string $generator_str, array $options = []): DOMDocument
     {
@@ -399,8 +400,7 @@ class shopSyrrssPluginRunController extends waLongActionController
      */
     private function addItem(array $product)
     {
-        /** @todo Ask user about image size */
-        $size = "210x0";
+        $size = $this->data['image_size'];
         $image_tag = "";
         $create_date = new DateTime($product["create_datetime"]);
 
@@ -412,22 +412,23 @@ class shopSyrrssPluginRunController extends waLongActionController
         $item->appendChild($this->rss->createElement('pubDate', $create_date->format('r')));
 
         /** @todo Process more tham one image, ask user about maximum of images to export */
-        if (isset($product["images"])) {
-            $image = array_shift($product["images"]);
-            $image_tag = '<img src="' .
-                'http://' .
-                ($this->data['base_url'] ?: 'localhost') .
-                shopImage::getUrl($image, $size) .
-                '" alt="' .
-                htmlentities($product["name"], ENT_QUOTES, 'UTF-8') .
-                '">';
+        if (($images = $product['images'] ?? null) && is_array($images)) {
+            if ($image = array_shift($images)) {
+                $image_tag = '<img src="' .
+                    'http://' .
+                    ($this->data['base_url'] ?: 'localhost') .
+                    shopImage::getUrl($image, $size) .
+                    '" alt="' .
+                    htmlentities($product["name"], ENT_QUOTES, 'UTF-8') .
+                    '">';
+            }
         }
 
         // No need to add empty description tag if there's no images nor summary
         if (!empty($image_tag) || !empty($product["summary"])) {
             $el_description = $this->rss->createElement('description');
 
-            $description = "{$image_tag}<p>" .
+            $description = "$image_tag<p>" .
                 htmlentities(strip_tags($product["summary"]), ENT_QUOTES, 'UTF-8') .
                 '</p>' .
                 $this->getItemPrice($product);
@@ -473,9 +474,9 @@ class shopSyrrssPluginRunController extends waLongActionController
             foreach (libxml_get_errors() as $error) {
                 $this->data["error"][] = array(
                     "level"   => "error",
-                    "message" => "#{$error->code} [{$error->line}:{$error->column}] {$error->message}"
+                    "message" => "#$error->code [$error->line:$error->column] $error->message"
                 );
-                $err[] = "#{$error->code} [{$error->line}:{$error->column}] {$error->message}";
+                $err[] = "#$error->code [$error->line:$error->column] $error->message";
             }
 
             $this->error(implode("\n\t", $err));
@@ -488,7 +489,6 @@ class shopSyrrssPluginRunController extends waLongActionController
     /**
      * @return string
      * @throws waException
-     * @todo Fuck out a presentation layer from the Controller to the View!
      */
     protected function report(): string
     {
@@ -499,8 +499,8 @@ class shopSyrrssPluginRunController extends waLongActionController
 
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
-            $interval = sprintf(_wp('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
-            $report .= ' ' . sprintf(_wp('(total time: %s)'), $interval);
+            $interval = sprintf(_wp('%02d ч. %02d мин. %02d сек.'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
+            $report .= ' ' . sprintf(_wp('(время работы: %s)'), $interval);
         }
         $report .= '</div>';
 

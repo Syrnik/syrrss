@@ -5,30 +5,36 @@
 86400 => "Автоматически, но не чаще чем раз в день",
 604800 => "Автоматически, но не чаще чем раз в неделю"
 ]}
-{$max_products_options = [0 => _wp("All"), 15 => "15", 25 => "25", 50 => "50", 100 => "100" ]}
+{$max_products_options = [0 => "All", 15 => "15", 25 => "25", 50 => "50", 100 => "100" ]}
 <div class="block double-padded" id="s-syrrss-form">
-    <h1>{_wp("RSS Feed of Products")}</h1>
+    <h1>{_wp("RSS товаров")|escape}</h1>
     <p>Экспорт товаров в RSS-поток. Товары упорядочены по дате добавления, самый первый — самый новый.</p>
-    
+
     {if $settlements}
         <form id="s-plugin-syrrss" method="post" action="?plugin=syrrss&module=run">
             <div class="fields form">
 
-            {if $info.exists}
-                <div class="field-group" style="border-bottom: 1px solid #ccc;">
-                    <div class="field">
-                        <div class="name bold">
-                            <label for="s-plugin-syrrss-last-export">RSS-файл</label>
-                        </div>
-                        <div class="value">
-                            <input id="s-plugin-syrrss-last-export" type="text" value="{$info.url|escape}" readonly="readonly" class="long bold large" style="width: 75% !important;">
-                            <a href="{$info.url}?download=1" class="bold nowrap inline"><i class="icon16 download no-overhanging" style="margin-top: 0.4em;"></i>Скачать</a>
-                            <p class="small">Файл обновлен: {$info.mtime|wa_datetime:"humandatetime"}</p>
-                            <p class="small"><i class="icon10 yes"></i> Ссылка на RSS-файл является постоянной и не меняется при повторном экспорте товаров. Для включения автоматического экспорта товаров укажите период обновления с помощью настройки «Обновление файла» ниже и сохраните настройку, повторно экспортировав товары. Чтобы сделать ссылку недействительной, удалите профиль.</p>
+                {if $info.exists}
+                    <div class="field-group" style="border-bottom: 1px solid #ccc;">
+                        <div class="field">
+                            <div class="name bold">
+                                <label for="s-plugin-syrrss-last-export">RSS-файл</label>
+                            </div>
+                            <div class="value">
+                                <input id="s-plugin-syrrss-last-export" type="text" value="{$info.url|escape}"
+                                       readonly="readonly" class="long bold large" style="width: 75% !important;">
+                                <a href="{$info.url}?download=1" class="bold nowrap inline"><i
+                                            class="icon16 download no-overhanging" style="margin-top: 0.4em;"></i>Скачать</a>
+                                <p class="small">Файл обновлен: {$info.mtime|wa_datetime:"humandatetime"}</p>
+                                <p class="small"><i class="icon10 yes"></i> Ссылка на RSS-файл является постоянной и не
+                                    меняется при повторном экспорте товаров. Для включения автоматического экспорта
+                                    товаров укажите период обновления с помощью настройки «Обновление файла» ниже и
+                                    сохраните настройку, повторно экспортировав товары. Чтобы сделать ссылку
+                                    недействительной, удалите профиль.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            {/if}
+                {/if}
 
                 <div class="field js-profile-description">
                     <div class="name">Название профиля</div>
@@ -62,7 +68,8 @@
                         {elseif reset($settlements)}
                             <div class="value no-shift">
                                 {$route = reset($settlements)}
-                                <input type="text" readonly="readonly" value="{$route|escape}" name="config[domain]" id="s-plugin-syrrss-domain">
+                                <input type="text" readonly="readonly" value="{$route|escape}" name="config[domain]"
+                                       id="s-plugin-syrrss-domain">
 
                                 <p class="hint">
                                     Витрину необходимо указать для
@@ -133,67 +140,99 @@
                     <div class="field">
                         <div class="name"><label for="s-plugin-syrrss-config-export-zero-stock">Остатки</label></div>
                         <div class="value no-shift"><label for="s-plugin-syrrss-config-export-zero-stock">
-                                <input name="config[export_zero_stock]" id="s-plugin-syrrss-config-export-zero-stock" type="checkbox" value="1"{if !empty($profile.config.export_zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}> Выгружать товары с нулевым остатком
+                                <input name="config[export_zero_stock]" id="s-plugin-syrrss-config-export-zero-stock"
+                                       type="checkbox"
+                                       value="1"{if !empty($profile.config.export_zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}>
+                                Выгружать товары с нулевым остатком
                             </label>
                             <p class="hint">Добавлять в ленту товары, которых нет в наличии</p>
-                            {if !empty($app_settings.ignore_stock_count)}<p class="hint">Для отключения этой настройки в настройках складов должен быть выбран вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе.</p>{/if}
+                            {if !empty($app_settings.ignore_stock_count)}
+                                <p class="hint">Для отключения этой настройки в настройках складов должен быть выбран
+                                    вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не
+                                    может превышать остаток на складе.</p>
+                            {/if}
                         </div>
                     </div>
                     <div class="clear-left"></div>
                 </div>
 
                 <div class="field-group">
-                    <h2 class="gray">2. Общие параметры экспорта</h2>
+                    <h2 class="gray">{_wp('2. Общие параметры экспорта')|escape}</h2>
 
                     <div class="field">
-                        <div class="name"><label for="s-plugin-syrrss-channel-name">{_wp("Channel Name")}</label></div>
+                        <div class="name">{_wp("Название канала")|escape}</div>
                         <div class="value">
-                            <input type="text" name="config[channel_name]" placeholder="{_wp("Channel Name")}" value="{$profile.config.channel_name|escape}" id="s-plugin-syrrss-channel-name">
+                            <input type="text" name="config[channel_name]"
+                                   value="{$profile.config.channel_name|escape}">
 
                             <p class="hint">Наименование канала RSS.</p>
                         </div>
                     </div>
                     <div class="field">
-                        <div class="name"><label for="s-plugin-syrrss-channel-name">{_wp("Channel Description")}</label></div>
+                        <div class="name">{_wp("Описание канала")|escape}</div>
                         <div class="value">
-                            <textarea name="config[channel_description]" id="s-plugin-syrrss-channel-description">{$profile.config.channel_description|escape}</textarea>
-                            <p class="hint">Описание канала RSS.</p>
+                            <textarea
+                                    name="config[channel_description]">{$profile.config.channel_description|escape}</textarea>
+                            <p class="hint">{_wp('Описание канала RSS.')|escape}</p>
                         </div>
                     </div>
+
                     <div class="field">
-                        <div class="name">UTM-метки</div>
-                        <div class="value no-shift">
-                            Источник (utm_source):<br>
-                            <input type="text" name="config[utm][source]" placeholder="RSS" value="{$profile.config.utm.source|default:''|escape}" >
-                        </div>
-                        <div class="value no-shift">
-                            Канал (utm_medium):<br>
-                            <input type="text" name="config[utm][medium]" placeholder="feed" value="{$profile.config.utm.medium|default:''|escape}" >
-                        </div>
-                        <div class="value no-shift">
-                            Кампания (utm_campaign):<br>
-                            <input type="text" name="config[utm][campaign]" placeholder="{$profile.name|default:''|escape}" value="{$profile.config.utm.campaign|default:''|escape}" >
+                        <div class="name">{_wp('Размер выгружаемых изображений')}</div>
+                        <div class="value">
+                            <input type="text" name="config[image_size]" value="{$profile.config.image_size|escape}">
                         </div>
                         <div class="value">
-                            <p class="hint">Ко всем адресам (URL), содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам.  Если вы не используете UTM-метки, просто оставьте поля пустыми.</p>
+                            <span class="hint">Можно указать вручную размер в формате или выбрать один из стандартных размеров из списка.</span>
+                        </div>
+                        <div class="value">
+                            <select id="s-plugin-syrrss-image-size-select">
+                                {foreach $image_sizes_list as $size}
+                                    <option value="{$size.value|escape}">{$size.title|escape}</option>
+                                {/foreach}
+                            </select>
                         </div>
                     </div>
+
                     <div class="field">
+                        <div class="name">{_wp('UTM-метки')|escape}</div>
+                        <div class="value no-shift">
+                            {_wp('Источник (utm_source)')|escape}:<br>
+                            <input type="text" name="config[utm][source]"
+                                   value="{$profile.config.utm.source|default:''|escape}">
+                        </div>
+                        <div class="value no-shift">
+                            {_wp('Канал (utm_medium)')|escape}:<br>
+                            <input type="text" name="config[utm][medium]"
+                                   value="{$profile.config.utm.medium|default:''|escape}">
+                        </div>
+                        <div class="value no-shift">
+                            {_wp('Кампания (utm_campaign)')|escape}:<br>
+                            <input type="text" name="config[utm][campaign]"
+                                   value="{$profile.config.utm.campaign|default:''|escape}">
+                        </div>
+                        <div class="value">
+                            <p class="hint">{_wp('Ко всем адресам (URL) содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам. Если вы не используете UTM-метки, просто оставьте поля пустыми.')|escape}</p>
+                        </div>
+                    </div>
+
+                    {*<div class="field">
                         <div class="name">Добавить разметку для Турбо-страниц Яндекса</div>
                         <div class="value no-shift">
                             <input type="checkbox" name="config[yaturbo][state]" value="1"{if isset($profile.config.yaturbo) && $profile.config.yaturbo.state} checked{/if}>
                         </div>
-                    </div>
+                    </div>*}
 
                 </div>
                 <div class="clear-left"></div>
-                
+
                 <div class="field-group" id="plugin-syrrss-submit">
                     <div class="field">
                         <div class="value submit">
                             <button type="submit" class="button green">Экспортировать</button>
                             <br><br>
-                            <em class="small js-profile-notice">При экспорте изменения в настройках профиля будут сохранены и применены к последующим экспортам автоматически</em>
+                            <em class="small js-profile-notice">При экспорте изменения в настройках профиля будут
+                                сохранены и применены к последующим экспортам автоматически</em>
 
                             <div class="js-progressbar-container" style="display:none;">
                                 <div class="progressbar blue float-left" style="display: none; width: 70%;">
@@ -219,13 +258,14 @@
                 <div class="field-group" id="plugin-syrrss-report" style="display: none;">
                     <div class="field">
                         <div class="value"></div>
-                        <div class="value"><br><a href="#/syrrss{if !empty($profile.id)}:{$profile.id}{/if}/" name="/syrrss/" onclick="window.location.reload();" class="bold">Получить ссылку на файл</a></div>
+                        <div class="value"><br><a href="#/syrrss{if !empty($profile.id)}:{$profile.id}{/if}/"
+                                                  name="/syrrss/" onclick="window.location.reload();" class="bold">Получить
+                                ссылку на файл</a></div>
                     </div>
                 </div>
 
             </div>
         </form>
-
     {else}
         <p>
             <span class="errormsg">Не определено ни одного поселения магазина.</span>
@@ -240,10 +280,9 @@
     if ($.importexport.plugins.syrrss) {
         $.importexport.plugins.syrrss.init();
     } else {
-        $.getScript('{$wa_app_static_url}plugins/syrrss/js/script.js', function() {
+        $.getScript('{$wa_app_static_url}plugins/syrrss/js/script.js', function () {
             $.importexport.plugins.syrrss.init();
-//            $.importexport.plugins.yandexmarket.initForm();
         });
     }
-    $.importexport.profiles.set('syrrss',{$profiles|json_encode});
+    $.importexport.profiles.set('syrrss', {$profiles|json_encode});
 </script>
