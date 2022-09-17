@@ -70,8 +70,11 @@ class shopSyrrssPluginRunController extends waLongActionController
                 'timestamp'          => time(),
                 'total_written'      => 0,
                 'utm'                => "",
-                'image_size'         => $profile_config['image_size'] ?? "210x0"
+                'image_size'         => $profile_config['image_size'] ?? "210x0",
+                'use_https'          => boolval($profile_config['use_https'] ?? true)
             ));
+
+            $this->data['schema'] = $this->data['use_https'] ? 'https://' : 'http://';
 
             if ($AppSettings->get('shop', "ignore_stock_count", 0)) $this->data["export_unavailable"] = 1;
 
@@ -91,9 +94,12 @@ class shopSyrrssPluginRunController extends waLongActionController
 
             $this->initRouting();
 
+            $route = wa()->getRouteUrl('shop/frontend', array(), true);
+            $route = preg_replace('|^https?://|', $this->data['schema'], $route);
+
             $this->rss = $this->initRss(
                 $profile_config['channel_name'],
-                preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true)),
+                $route,
                 $profile_config["channel_description"],
                 "SyrRSS plugin for Shop-Script " . $Plugin->getVersion()
             );
@@ -269,7 +275,7 @@ class shopSyrrssPluginRunController extends waLongActionController
                 if ($domain . '/' . $route['url'] == $this->data['domain']) {
                     $routing->setRoute($route, $domain);
                     waRequest::setParam($route);
-                    $this->data['base_url'] = parse_url('http://' . preg_replace('@https?://@', '', $domain), PHP_URL_HOST);
+                    $this->data['base_url'] = parse_url(preg_replace('|https?://|', $this->data['schema'], $domain), PHP_URL_HOST);
                     $success = true;
                     break;
                 }
@@ -334,12 +340,6 @@ class shopSyrrssPluginRunController extends waLongActionController
         $rss = $dom->createElement('rss');
         $dom->appendChild($rss);
         $rss->setAttribute('version', '2.0');
-
-        if ($options['yaturbo']) {
-            $dom->createAttributeNS('http://news.yandex.ru', 'yandex');
-            $dom->createAttributeNS('http://search.yahoo.com/mrss/', 'media');
-            $dom->createAttributeNS('http://turbo.yandex.ru', 'turbo');
-        }
 
         $channel = $dom->createElement('channel');
         $rss->appendChild($channel);
@@ -415,7 +415,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         if (($images = $product['images'] ?? null) && is_array($images)) {
             if ($image = array_shift($images)) {
                 $image_tag = '<img src="' .
-                    'http://' .
+                    $this->data['schema'] .
                     ($this->data['base_url'] ?: 'localhost') .
                     shopImage::getUrl($image, $size) .
                     '" alt="' .
@@ -454,7 +454,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             $url .= (strpos($url, '?') ? '&' : '?') . $this->data['utm'];
         }
 
-        return 'http://' . ($this->data['base_url'] ?: 'localhost') . $url;
+        return $this->data['schema'] . ($this->data['base_url'] ?: 'localhost') . $url;
     }
 
     /**

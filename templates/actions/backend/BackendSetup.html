@@ -183,7 +183,7 @@
                             <input type="text" name="config[image_size]" value="{$profile.config.image_size|escape}">
                         </div>
                         <div class="value">
-                            <span class="hint">Можно указать вручную размер в формате или выбрать один из стандартных размеров из списка.</span>
+                            <span class="hint">{_wp('Можно указать вручную размер в формате или выбрать один из стандартных размеров из списка.')}</span>
                         </div>
                         <div class="value">
                             <select id="s-plugin-syrrss-image-size-select">
@@ -191,6 +191,17 @@
                                     <option value="{$size.value|escape}">{$size.title|escape}</option>
                                 {/foreach}
                             </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="name">{_wp('Использовать https для ссылок')}</div>
+                        <div class="value">
+                            <input type="hidden" name="config[use_https]" value="0">
+                            <label><input type="checkbox" name="config[use_https]" value="1"{if $profile.config.use_https} checked{/if}>
+                                — {_wp('генерировать ссылки на товар и изображения с https')}
+                            </label>
+
                         </div>
                     </div>
 
