@@ -14,24 +14,36 @@ $.extend($.importexport.plugins, {
         init() {
             $.shop.trace('$.importexport.plugins.syrrss.init');
             this.$form = $("#s-plugin-syrrss");
+            const selected_image_size = this.$form.find('input[type=text][name=config\\[image_size\\]]').val();
+            const that = this;
+            const $image_select = $('#s-plugin-syrrss-image-size-select');
+            $image_select.val(selected_image_size);
+            $image_select.off().on('change', function () {
+                const $input = that.$form.find('input[type=text][name=config\\[image_size\\]]');
+                $input.val($(this).val());
+            })
         },
 
         hashAction(hash) {
             $.importexport.products.action(hash);
             window.location.hash = window.location.hash.replace(/\/hash\/.+$/, '/');
         },
-        
-        blur(){},
-        action(){},
 
+        blur() {
+        },
+        action() {
+        },
+
+        // Инициализация процесса экспорта
         onInit() {
             $.importexport.products.init(this.$form);
-            
-            this.$form.unbind('submit.syrrss').bind('submit.syrrss', function (event) {
+
+            this.$form.off('submit.syrrss').on('submit.syrrss', function (event) {
                 $.shop.trace('submit.syrrss ' + event.namespace, event);
                 try {
                     const $form = $(this);
                     $form.find(':input, :submit').attr('disabled', false);
+
                     $.importexport.plugins.syrrss.syrrssHandler(this);
                 } catch (e) {
                     $('#plugin-syrrss-transport-group').find(':input').attr('disabled', false);
@@ -74,6 +86,7 @@ $.extend($.importexport.plugins, {
                         self.ajax_pull[response.processId] = [];
                         self.ajax_pull[response.processId].push(setTimeout(function () {
                             $.wa.errorHandler = function (xhr) {
+                                // noinspection EqualityComparisonWithCoercionJS
                                 return !((xhr.status >= 500) || (xhr.status == 0));
                             };
                             self.progressHandler(url, response.processId, response);
@@ -147,7 +160,7 @@ $.extend($.importexport.plugins, {
 
             } else {
                 let $description;
-                if (response && (typeof(response.progress) != 'undefined')) {
+                if (response && (typeof (response.progress) != 'undefined')) {
                     $bar = self.form.find('.progressbar .progressbar-inner');
                     const progress = parseFloat(response.progress.replace(/,/, '.'));
                     $bar.animate({
@@ -165,7 +178,7 @@ $.extend($.importexport.plugins, {
                     $description.text(message);
                     $description.attr('title', title);
                 }
-                if (response && (typeof(response.warning) != 'undefined')) {
+                if (response && (typeof (response.warning) != 'undefined')) {
                     $description = self.form.find('.progressbar-description');
                     $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
                 }
