@@ -21,7 +21,15 @@ $.extend($.importexport.plugins, {
             $image_select.off().on('change', function () {
                 const $input = that.$form.find('input[type=text][name=config\\[image_size\\]]');
                 $input.val($(this).val());
-            })
+            });
+
+            // радио и инпут с кол-вом фото
+            const $radio_images = $('input[name=config\\[images_count_type\\]]');
+            $radio_images.off().on('change', function () {
+                const is_max = (this.value === 'max');
+                $('input[name=config\\[images_count_value\\]]').prop('readonly', !is_max).prop('required', is_max);
+            });
+            $radio_images.first().change();
         },
 
         hashAction(hash) {

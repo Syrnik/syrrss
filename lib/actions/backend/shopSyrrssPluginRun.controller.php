@@ -71,7 +71,11 @@ class shopSyrrssPluginRunController extends waLongActionController
                 'total_written'      => 0,
                 'utm'                => "",
                 'image_size'         => $profile_config['image_size'] ?? "210x0",
-                'use_https'          => boolval($profile_config['use_https'] ?? true)
+                'use_https'          => boolval($profile_config['use_https'] ?? true),
+                'images_counter'     => [
+                    'type'  => $profile_config['images_count_type'],
+                    'value' => intval(max(1, (int)$profile_config['images_count_value']))
+                ]
             ));
 
             $this->data['schema'] = $this->data['use_https'] ? 'https://' : 'http://';
@@ -160,7 +164,7 @@ class shopSyrrssPluginRunController extends waLongActionController
                 $this->validate();
             }
         } catch (Exception $ex) {
-            $this->error($ex->getMessage());
+//            $this->error($ex->getMessage());
         }
 
         $this->info();
@@ -411,16 +415,21 @@ class shopSyrrssPluginRunController extends waLongActionController
         $item->appendChild($this->rss->createElement('link', $this->productUrl($product)));
         $item->appendChild($this->rss->createElement('pubDate', $create_date->format('r')));
 
-        /** @todo Process more tham one image, ask user about maximum of images to export */
-        if (($images = $product['images'] ?? null) && is_array($images)) {
-            if ($image = array_shift($images)) {
-                $image_tag = '<img src="' .
-                    $this->data['schema'] .
-                    ($this->data['base_url'] ?: 'localhost') .
-                    shopImage::getUrl($image, $size) .
-                    '" alt="' .
-                    htmlentities($product["name"], ENT_QUOTES, 'UTF-8') .
-                    '">';
+        if (('none' !== $this->data['images_counter']['type']) && ($images = $product['images'] ?? null) && is_array($images)) {
+            $img_cnt = 0;
+            foreach ($images as $image) {
+                if ($image) {
+                    $image_tag .= '<img src="' .
+                        $this->data['schema'] .
+                        ($this->data['base_url'] ?: 'localhost') .
+                        shopImage::getUrl($image, $size) .
+                        '" alt="' .
+                        htmlentities($product["name"], ENT_QUOTES, 'UTF-8') .
+                        '">';
+
+                    if (('max' === $this->data['images_counter']['type']) && (++$img_cnt >= $this->data['images_counter']['value']))
+                        break;
+                }
             }
         }
 
@@ -479,7 +488,7 @@ class shopSyrrssPluginRunController extends waLongActionController
                 $err[] = "#$error->code [$error->line:$error->column] $error->message";
             }
 
-            $this->error(implode("\n\t", $err));
+//            $this->error(implode("\n\t", $err));
             libxml_clear_errors();
         }
 

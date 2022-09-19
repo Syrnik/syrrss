@@ -99,7 +99,9 @@ class shopSyrrssPluginBackendSetupAction extends waViewAction
             "max_products"        => 15,
             "channel_description" => _wp("Новые товары"),
             "image_size"          => "210x0",
-            "use_https"           => "1"
+            "use_https"           => "1",
+            "images_count_type"   => "max", // max, all, none
+            "images_count_value"  => "1"
         );
 
         if (!($profile["config"]["channel_name"] ?? null)) {

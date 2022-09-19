@@ -195,10 +195,33 @@
                     </div>
 
                     <div class="field">
+                        <div class="name">{_wp('Количество выгружаемых изображений')}</div>
+                        <div class="value">
+                            <label><input type="radio" name="config[images_count_type]"
+                                          value="all"{if $profile.config.images_count_type=='all'} checked{/if}>
+                                — {_wp('все')}</label>
+                        </div>
+                        <div class="value">
+                            <label><input type="radio" name="config[images_count_type]"
+                                          value="max"{if $profile.config.images_count_type=='max'} checked{/if}>
+                                — {_wp('не более, чем')} </label>
+                            <input type="number" min="1" step="1" class="short numerical"
+                                   name="config[images_count_value]"
+                                   value="{$profile.config.images_count_value}">
+                        </div>
+                        <div class="value">
+                            <label><input type="radio" name="config[images_count_type]"
+                                          value="none"{if $profile.config.images_count_type=='none'} checked{/if}>
+                                — {_wp('не выгружать совсем')}</label>
+                        </div>
+                    </div>
+
+                    <div class="field">
                         <div class="name">{_wp('Использовать https для ссылок')}</div>
                         <div class="value">
                             <input type="hidden" name="config[use_https]" value="0">
-                            <label><input type="checkbox" name="config[use_https]" value="1"{if $profile.config.use_https} checked{/if}>
+                            <label><input type="checkbox" name="config[use_https]"
+                                          value="1"{if $profile.config.use_https} checked{/if}>
                                 — {_wp('генерировать ссылки на товар и изображения с https')}
                             </label>
 
@@ -227,20 +250,13 @@
                         </div>
                     </div>
 
-                    {*<div class="field">
-                        <div class="name">Добавить разметку для Турбо-страниц Яндекса</div>
-                        <div class="value no-shift">
-                            <input type="checkbox" name="config[yaturbo][state]" value="1"{if isset($profile.config.yaturbo) && $profile.config.yaturbo.state} checked{/if}>
-                        </div>
-                    </div>*}
-
                 </div>
                 <div class="clear-left"></div>
 
                 <div class="field-group" id="plugin-syrrss-submit">
                     <div class="field">
                         <div class="value submit">
-                            <button type="submit" class="button green">Экспортировать</button>
+                            <button type="submit" class="button green">{_wp('Экспортировать')}</button>
                             <br><br>
                             <em class="small js-profile-notice">При экспорте изменения в настройках профиля будут
                                 сохранены и применены к последующим экспортам автоматически</em>
@@ -270,8 +286,7 @@
                     <div class="field">
                         <div class="value"></div>
                         <div class="value"><br><a href="#/syrrss{if !empty($profile.id)}:{$profile.id}{/if}/"
-                                                  name="/syrrss/" onclick="window.location.reload();" class="bold">Получить
-                                ссылку на файл</a></div>
+                                                  name="/syrrss/" onclick="window.location.reload();" class="bold">{_wp('Получить ссылку на файл')}</a></div>
                     </div>
                 </div>
 
@@ -291,7 +306,7 @@
     if ($.importexport.plugins.syrrss) {
         $.importexport.plugins.syrrss.init();
     } else {
-        $.getScript('{$wa_app_static_url}plugins/syrrss/js/script.js', function () {
+        $.getScript('{$wa_app_static_url}plugins/syrrss/js/script{if !$wa->debug()}.min{/if}.js', function () {
             $.importexport.plugins.syrrss.init();
         });
     }
