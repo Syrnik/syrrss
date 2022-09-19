@@ -1,0 +1,124 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/syrrss\n"
+"POT-Creation-Date: 2022-09-19 13:58+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/plugins/syrrss\n"
+"Language-Team: shop/plugins/syrrss\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: en_US\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: utf-8\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "2. Общие параметры экспорта"
+msgstr ""
+
+msgid "Описание канала RSS."
+msgstr ""
+
+msgid "Размер выгружаемых изображений"
+msgstr ""
+
+msgid "Можно указать вручную размер в формате или выбрать один из стандартных размеров из списка."
+msgstr ""
+
+msgid "Количество выгружаемых изображений"
+msgstr ""
+
+msgid "все"
+msgstr ""
+
+msgid "не более, чем"
+msgstr ""
+
+msgid "не выгружать совсем"
+msgstr ""
+
+msgid "Использовать https для ссылок"
+msgstr ""
+
+msgid "генерировать ссылки на товар и изображения с https"
+msgstr ""
+
+msgid "UTM-метки"
+msgstr ""
+
+msgid "Источник (utm_source)"
+msgstr ""
+
+msgid "Канал (utm_medium)"
+msgstr ""
+
+msgid "Кампания (utm_campaign)"
+msgstr ""
+
+msgid "Ко всем адресам (URL) содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам. Если вы не используете UTM-метки, просто оставьте поля пустыми."
+msgstr ""
+
+msgid "Экспортировать"
+msgstr ""
+
+msgid "Получить ссылку на файл"
+msgstr ""
+
+msgid "RSS товаров"
+msgstr ""
+
+msgid "Максимальное число товаров в ленте"
+msgstr ""
+
+msgid "Название канала"
+msgstr ""
+
+msgid "Описание канала"
+msgstr ""
+
+msgid "RSS Feed of Products"
+msgstr ""
+
+msgid "Макс. (Ширина, Высота)"
+msgstr ""
+
+msgid "Ширина = авто, Высота ="
+msgstr ""
+
+msgid "Ширина = %d px, Высота = авто"
+msgstr ""
+
+msgid "Квадратная обрезка: %dx%d px"
+msgstr ""
+
+msgid "Прямоугольная обрезка %dx%d px"
+msgstr ""
+
+msgid "Новые товары"
+msgstr ""
+
+msgid "Новые товары в магазине %s"
+msgstr ""
+
+msgid "Exported"
+msgstr ""
+
+msgid "%02d ч. %02d мин. %02d сек."
+msgstr ""
+
+msgid "(время работы: %s)"
+msgstr ""
+
+msgid "%d товар"
+msgid_plural "%d товаров"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgid "Цена:"
+msgstr ""
+
+msgid "\"Экспорт всех или указанное количество новых товаров в RSS-ленту\""
+msgstr ""

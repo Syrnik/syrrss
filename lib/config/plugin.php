@@ -2,15 +2,15 @@
 /**
  * This file is a part of "RSS Feed of Products" plugin for ShopScript 5
  * 
- * @author Serge Rodovnichenko <sergerod@gmail.com>
+ * @author Serge Rodovnichenko <serge@syrnik.com>
  *
  * @license http://www.webasyst.com/terms/#eula Webasyst Commercial
  * @version 1.0.0
  */
 
 return array(
-    'name' => _wp('RSS Feed of products'),
-    'description' => _wp('Export all or several newest products to the RSS feed'),
+    'name' => _wp('RSS товаров'),
+    'description' => _wp('Экспорт всех или указанное количество новых товаров в RSS-ленту'),
     'vendor'=>670917,
     'version'=>'1.0.3',
     'importexport' => 'profiles',

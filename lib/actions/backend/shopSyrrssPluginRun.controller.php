@@ -504,7 +504,7 @@ class shopSyrrssPluginRunController extends waLongActionController
         $report = '<div class="successmsg">';
         $report .= sprintf('<i class="icon16 yes"></i>%s ', _wp('Exported'));
 
-        $report .= htmlentities(_wp("%d product", "%d products", $this->data["total_written"]), ENT_QUOTES, "utf-8");
+        $report .= htmlentities(_wp("%d товар", "%d товаров", $this->data["total_written"]), ENT_QUOTES, "utf-8");
 
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
@@ -526,7 +526,7 @@ class shopSyrrssPluginRunController extends waLongActionController
 
         if (isset($product["price"]) && isset($product["currency"])) {
             return "<p>" .
-                _wp("Price:") .
+                _wp("Цена:") .
                 " " .
                 waCurrency::format("%{s}", $product["price"], $this->data["primary_currency"]) .
                 "</p>";
