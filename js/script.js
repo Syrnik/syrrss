@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 $.extend($.importexport.plugins, {
     syrrss: {
         form: null,
@@ -9,29 +11,47 @@ $.extend($.importexport.plugins, {
             'memory_avg': 0.0
         },
         $form: null,
-        init: function () {
+        init() {
             $.shop.trace('$.importexport.plugins.syrrss.init');
             this.$form = $("#s-plugin-syrrss");
+            const selected_image_size = this.$form.find('input[type=text][name=config\\[image_size\\]]').val();
+            const that = this;
+            const $image_select = $('#s-plugin-syrrss-image-size-select');
+            $image_select.val(selected_image_size);
+            $image_select.off().on('change', function () {
+                const $input = that.$form.find('input[type=text][name=config\\[image_size\\]]');
+                $input.val($(this).val());
+            });
+
+            // радио и инпут с кол-вом фото
+            const $radio_images = $('input[name=config\\[images_count_type\\]]');
+            $radio_images.off().on('change', function () {
+                const is_max = (this.value === 'max');
+                $('input[name=config\\[images_count_value\\]]').prop('readonly', !is_max).prop('required', is_max);
+            });
+            $radio_images.first().change();
         },
 
-        hashAction: function (hash) {
-            
+        hashAction(hash) {
             $.importexport.products.action(hash);
             window.location.hash = window.location.hash.replace(/\/hash\/.+$/, '/');
         },
-        
-        blur: function(){},
-        action: function(){},
-        ajax_pull: {},
-        
-        onInit: function() {
+
+        blur() {
+        },
+        action() {
+        },
+
+        // Инициализация процесса экспорта
+        onInit() {
             $.importexport.products.init(this.$form);
-            
-            this.$form.unbind('submit.syrrss').bind('submit.syrrss', function (event) {
+
+            this.$form.off('submit.syrrss').on('submit.syrrss', function (event) {
                 $.shop.trace('submit.syrrss ' + event.namespace, event);
                 try {
-                    var $form = $(this);
+                    const $form = $(this);
                     $form.find(':input, :submit').attr('disabled', false);
+
                     $.importexport.plugins.syrrss.syrrssHandler(this);
                 } catch (e) {
                     $('#plugin-syrrss-transport-group').find(':input').attr('disabled', false);
@@ -41,18 +61,18 @@ $.extend($.importexport.plugins, {
             });
 
         },
-        
-        syrrssHandler: function (element) {
-            var self = this;
+
+        syrrssHandler(element) {
+            const self = this;
             self.progress = true;
             self.form = $(element);
-            var data = self.form.serialize();
+            const data = self.form.serialize();
             self.form.find('.errormsg').text('');
             self.form.find(':input').attr('disabled', true);
             self.form.find(':submit').hide();
             self.form.find('.progressbar .progressbar-inner').css('width', '0%');
             self.form.find('.progressbar').show();
-            var url = $(element).attr('action');
+            const url = $(element).attr('action');
             $.ajax({
                 url: url,
                 data: data,
@@ -74,6 +94,7 @@ $.extend($.importexport.plugins, {
                         self.ajax_pull[response.processId] = [];
                         self.ajax_pull[response.processId].push(setTimeout(function () {
                             $.wa.errorHandler = function (xhr) {
+                                // noinspection EqualityComparisonWithCoercionJS
                                 return !((xhr.status >= 500) || (xhr.status == 0));
                             };
                             self.progressHandler(url, response.processId, response);
@@ -94,29 +115,26 @@ $.extend($.importexport.plugins, {
             return false;
         },
 
-        onDone: function (url, processId, response) {
+        onDone(url, processId, response) {
 
         },
 
-        progressHandler: function (url, processId, response) {
+        progressHandler(url, processId, response) {
             // display progress
             // if not completed do next iteration
-            var self = $.importexport.plugins.syrrss;
-            var $bar;
+            const self = $.importexport.plugins.syrrss;
+            let $bar;
             if (response && response.ready) {
                 $.wa.errorHandler = null;
-                var timer;
+                let timer;
                 while (timer = self.ajax_pull[processId].pop()) {
-                    if (timer) {
-                        clearTimeout(timer);
-                    }
+                    if (timer) clearTimeout(timer);
                 }
                 $bar = self.form.find('.progressbar .progressbar-inner');
                 $bar.css({
                     'width': '100%'
                 });
                 $.shop.trace('cleanup', response.processId);
-
 
                 $.ajax({
                     url: url,
@@ -130,7 +148,7 @@ $.extend($.importexport.plugins, {
                         $.shop.trace('report', response);
                         $("#plugin-syrrss-submit").hide();
                         self.form.find('.progressbar').hide();
-                        var $report = $("#plugin-syrrss-report");
+                        const $report = $("#plugin-syrrss-report");
                         $report.show();
                         if (response.report) {
                             $report.find(".value:first").html(response.report);
@@ -149,32 +167,32 @@ $.extend($.importexport.plugins, {
                 self.form.find('.errormsg').text(response.error);
 
             } else {
-                var $description;
-                if (response && (typeof(response.progress) != 'undefined')) {
+                let $description;
+                if (response && (typeof (response.progress) != 'undefined')) {
                     $bar = self.form.find('.progressbar .progressbar-inner');
-                    var progress = parseFloat(response.progress.replace(/,/, '.'));
+                    const progress = parseFloat(response.progress.replace(/,/, '.'));
                     $bar.animate({
                         'width': progress + '%'
                     });
                     self.debug.memory = Math.max(0.0, self.debug.memory, parseFloat(response.memory) || 0);
                     self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
 
-                    var title = 'Memory usage: ' + self.debug.memory_avg + '/' + self.debug.memory + 'MB';
+                    const title = 'Memory usage: ' + self.debug.memory_avg + '/' + self.debug.memory + 'MB';
 
-                    var message = response.progress;
+                    const message = response.progress;
 
                     $bar.parents('.progressbar').attr('title', response.progress);
                     $description = self.form.find('.progressbar-description');
                     $description.text(message);
                     $description.attr('title', title);
                 }
-                if (response && (typeof(response.warning) != 'undefined')) {
+                if (response && (typeof (response.warning) != 'undefined')) {
                     $description = self.form.find('.progressbar-description');
                     $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
                 }
 
-                var ajax_url = url;
-                var id = processId;
+                const ajax_url = url;
+                const id = processId;
 
                 self.ajax_pull[id].push(setTimeout(function () {
                     $.ajax({
@@ -184,10 +202,10 @@ $.extend($.importexport.plugins, {
                         },
                         dataType: 'json',
                         type: 'post',
-                        success: function (response) {
+                        success(response) {
                             self.progressHandler(url, response ? response.processId || id : id, response);
                         },
-                        error: function () {
+                        error() {
                             self.progressHandler(url, id, null);
                         }
                     });

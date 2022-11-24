@@ -1,10 +1,10 @@
 <?php
 /**
- * @author Serge Rodovnichenko <sergerod@gmail.com>
- *
+ * @copyright Serge Rodovnichenko <serge@syrnik.com>
  * @license http://www.webasyst.com/terms/#eula Webasyst Commercial
- * @version 1.0.3
+ * @noinspection PhpComposerExtensionStubsInspection, HttpUrlsUsage, DuplicatedCode
  */
+declare(strict_types=1);
 
 /**
  * RSS feed creation
@@ -14,31 +14,39 @@
 class shopSyrrssPluginRunController extends waLongActionController
 {
 
-    /** @var SimpleXmlElement */
+    /** @var DOMDocument */
     private $rss;
 
     /** @var shopProductsCollection */
     private $collection;
 
+    /**
+     * @return void
+     */
     protected function preExecute()
     {
         parent::preExecute();
-
         $this->getResponse()->addHeader('Content-type', 'application/json')->sendHeaders();
     }
 
+    /**
+     * @return void
+     * @throws waException|DOMException
+     */
     protected function init()
     {
         $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
-        $Config = waSystem::getInstance()->getConfig();
+
+        /** @var shopConfig $Config */
+        $Config = wa('shop')->getConfig();
         $AppSettings = new waAppSettingsModel();
 
-        /** @var shopSyrrssPlugin */
+        /** @var shopSyrrssPlugin $Plugin */
         $Plugin = waSystem::getInstance()->getPlugin(shopSyrrssPlugin::PLUGIN_ID);
 
         try {
 
-            if(waSystem::getInstance()->getEnv() == 'backend') {
+            if (waSystem::getInstance()->getEnv() == 'backend') {
                 $profile_config = $this->getProfileOptionsFromRequest();
                 $profile_id = $Profile->setConfig($profile_config);
                 $Plugin->getHash($profile_id);
@@ -50,33 +58,39 @@ class shopSyrrssPluginRunController extends waLongActionController
             }
 
             $this->data = array_merge($this->data, array(
-                'domain'=>$profile_config['domain'],
-                'export_unavailable'=>$profile_config["export_zero_stock"],
-                'hash'=>$profile_config['hash'],
-                'memory' => memory_get_peak_usage(),
-                'memory_avg' => memory_get_usage(),
-                'offset' => array('offers'=>0),
-                'path' => array('offers' => shopSyrrssPlugin::path($profile_id . ".xml")),
-                'primary_currency' => $Config->getCurrency(),
-                'processed_count' => 0,
-                'timestamp' => time(),
-                'total_written' => 0,
-                'utm' => ""
+                'domain'             => $profile_config['domain'],
+                'export_unavailable' => $profile_config["export_zero_stock"],
+                'hash'               => $profile_config['hash'],
+                'memory'             => memory_get_peak_usage(),
+                'memory_avg'         => memory_get_usage(),
+                'offset'             => array('offers' => 0),
+                'path'               => array('offers' => shopSyrrssPlugin::path($profile_id . ".xml")),
+                'primary_currency'   => $Config->getCurrency(),
+                'processed_count'    => 0,
+                'timestamp'          => time(),
+                'total_written'      => 0,
+                'utm'                => "",
+                'image_size'         => $profile_config['image_size'] ?? "210x0",
+                'use_https'          => boolval($profile_config['use_https'] ?? true),
+                'images_counter'     => [
+                    'type'  => $profile_config['images_count_type'],
+                    'value' => intval(max(1, (int)$profile_config['images_count_value']))
+                ]
             ));
 
-            if($AppSettings->get('shop', "ignore_stock_count", 0)) {
-                $this->data["export_unavailable"] = 1;
-            }
+            $this->data['schema'] = $this->data['use_https'] ? 'https://' : 'http://';
 
-            if(isset($profile_config["utm"]["source"]) && isset($profile_config["utm"]["medium"]) && isset($profile_config["utm"]["campaign"])) {
-                foreach(array("source", "medium", "campaign") as $param) {
-                    $profile_config["utm"][$param]=trim($profile_config["utm"][$param]);
-                    if(empty($profile_config["utm"][$param])) {
+            if ($AppSettings->get('shop', "ignore_stock_count", 0)) $this->data["export_unavailable"] = 1;
+
+            if (isset($profile_config["utm"]["source"]) && isset($profile_config["utm"]["medium"]) && isset($profile_config["utm"]["campaign"])) {
+                foreach (array("source", "medium", "campaign") as $param) {
+                    $profile_config["utm"][$param] = trim($profile_config["utm"][$param]);
+                    if (empty($profile_config["utm"][$param])) {
                         unset($profile_config["utm"][$param]);
                     }
                 }
-                if(!empty($profile_config["utm"]))
-                $this->data["utm"] = http_build_query(array_map('rawurlencode', $profile_config["utm"]));
+                if (!empty($profile_config["utm"]))
+                    $this->data["utm"] = http_build_query(array_map('rawurlencode', $profile_config["utm"]));
             }
 
             $this->data["count"] = $this->getCollection()->count();
@@ -84,25 +98,32 @@ class shopSyrrssPluginRunController extends waLongActionController
 
             $this->initRouting();
 
-            $this->rss = $this->initRss();
+            $route = wa()->getRouteUrl('shop/frontend', array(), true);
+            $route = preg_replace('|^https?://|', $this->data['schema'], $route);
 
-            $this->rss->channel->title = $profile_config['channel_name'];
-            $this->rss->channel->link = preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true));
-            $this->rss->channel->description = $profile_config["channel_description"];
-            $this->rss->channel->generator = "SyrRSS plugin for Shopscript " . $Plugin->getVersion();
+            $this->rss = $this->initRss(
+                $profile_config['channel_name'],
+                $route,
+                $profile_config["channel_description"],
+                "SyrRSS plugin for Shop-Script " . $Plugin->getVersion()
+            );
 
         } catch (waException $e) {
-            echo json_encode(array('error'=>$e->getMessage()));
+            echo json_encode(array('error' => $e->getMessage()));
         }
     }
 
-    protected function step()
+    /**
+     * @return bool
+     * @throws waException|DOMException
+     */
+    protected function step(): bool
     {
         static $product_collection;
 
-        if(!$product_collection) {
-            $product_collection = $this->getCollection()->getProducts('*,images,summary,id,name,price,currency,create_datetime,frontend_url', $this->data["processed_count"], 200, FALSE);
-            if(!$product_collection) {
+        if (!$product_collection) {
+            $product_collection = $this->getCollection()->getProducts('*,images,summary,id,name,price,currency,create_datetime,frontend_url', $this->data["processed_count"], 200, false);
+            if (!$product_collection) {
                 $this->data["processed_count"] = $this->data["count"];
             }
         }
@@ -110,9 +131,9 @@ class shopSyrrssPluginRunController extends waLongActionController
         $step = 0;
         $product = array_shift($product_collection);
 
-        while(($step < 50) && $product && $this->data["max_products"] > $this->data["total_written"]) {
+        while (($step < 50) && $product && $this->data["max_products"] > $this->data["total_written"]) {
 
-            if(($product["price"] > 0) && ($this->data["export_unavailable"] || ($product["count"] === NULL) || ($product["count"] > 0))) {
+            if (($product["price"] > 0) && ($this->data["export_unavailable"] || ($product["count"] === null) || ($product["count"] > 0))) {
                 $this->addItem($product);
                 $this->data["total_written"]++;
             }
@@ -122,13 +143,17 @@ class shopSyrrssPluginRunController extends waLongActionController
             $product = array_shift($product_collection);
         }
 
-        return TRUE;
+        return true;
     }
 
-    protected function finish($filename)
+    /**
+     * @param $filename
+     * @return bool
+     * @throws waException
+     */
+    protected function finish($filename): bool
     {
         $result = !!$this->getRequest()->post('cleanup');
-
 
         try {
             if ($result) {
@@ -139,7 +164,7 @@ class shopSyrrssPluginRunController extends waLongActionController
                 $this->validate();
             }
         } catch (Exception $ex) {
-            $this->error($ex->getMessage());
+//            $this->error($ex->getMessage());
         }
 
         $this->info();
@@ -148,19 +173,22 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * @see waLongActionController::isDone()
      * @return boolean
+     * @see waLongActionController::isDone()
      */
-    protected function isDone()
+    protected function isDone(): bool
     {
 
-        if(($this->data["processed_count"] < $this->data["count"]) && ($this->data["total_written"] < $this->data["max_products"])) {
-            return FALSE;
-        }
+        if (($this->data["processed_count"] < $this->data["count"]) && ($this->data["total_written"] < $this->data["max_products"]))
+            return false;
 
-        return TRUE;
+        return true;
     }
 
+    /**
+     * @return void
+     * @throws waException
+     */
     protected function info()
     {
         $interval = empty($this->data["timestamp"]) ? 0 : time() - $this->data['timestamp'];
@@ -175,7 +203,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             'memory_avg' => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
         );
 
-        if($this->isDone()) {
+        if ($this->isDone()) {
             $response["report"] = $this->report(); // . $this->validateReport();
         }
 
@@ -187,13 +215,17 @@ class shopSyrrssPluginRunController extends waLongActionController
      *
      * @return array
      */
-    private function getProfileOptionsFromRequest()
+    private function getProfileOptionsFromRequest(): array
     {
         $hash = shopImportexportHelper::getCollectionHash();
 
-        return array_merge(array('export_zero_stock'=>0), waRequest::post('config'), array('hash'=>$hash["hash"]));
+        return array_merge(array('export_zero_stock' => 0), waRequest::post('config'), array('hash' => $hash["hash"]));
     }
 
+    /**
+     * @return void
+     * @throws waException
+     */
     protected function restore()
     {
         $this->loadRss();
@@ -201,31 +233,41 @@ class shopSyrrssPluginRunController extends waLongActionController
         $this->collection = null;
     }
 
+    /**
+     * @return void
+     * @throws waException
+     */
     protected function save()
     {
-        if ($this->rss) {
-            $this->rss->asXML($this->getTempPath());
-        }
+        if ($this->rss) $this->rss->save($this->getTempPath());
     }
 
-    private function getProfile()
+    /**
+     * @return array
+     * @throws waException
+     */
+    private function getProfile(): array
     {
         $Profile = new shopImportexportHelper(shopSyrrssPlugin::PLUGIN_ID);
 
         $profile_id = waRequest::param('profile_id');
 
-        if(!$profile_id) {
+        if (!$profile_id) {
             throw new waException("Invalid profile", 404);
         }
 
         $profile = $Profile->getConfig($profile_id);
-        if(!$profile) {
+        if (!$profile) {
             throw new waException("Invalid profile", 404);
         }
 
         return $profile;
     }
 
+    /**
+     * @return void
+     * @throws waException
+     */
     private function initRouting()
     {
         $routing = wa()->getRouting();
@@ -234,10 +276,10 @@ class shopSyrrssPluginRunController extends waLongActionController
         $success = false;
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
-                if ($domain.'/'.$route['url'] == $this->data['domain']) {
+                if ($domain . '/' . $route['url'] == $this->data['domain']) {
                     $routing->setRoute($route, $domain);
                     waRequest::setParam($route);
-                    $this->data['base_url'] = parse_url('http://'.preg_replace('@https?://@', '', $domain), PHP_URL_HOST);
+                    $this->data['base_url'] = parse_url(preg_replace('|https?://|', $this->data['schema'], $domain), PHP_URL_HOST);
                     $success = true;
                     break;
                 }
@@ -254,17 +296,18 @@ class shopSyrrssPluginRunController extends waLongActionController
 
     /**
      *
-     * @internal param string $hash
      * @return shopProductsCollection
+     * @throws waException
+     * @internal param string $hash
      */
-    private function getCollection()
+    private function getCollection(): shopProductsCollection
     {
         if (!$this->collection) {
             $options = array(
                 'frontend' => true,
-                'params'=>array(
-                    'sort'=>'create_datetime',
-                    'order'=>'desc'
+                'params'   => array(
+                    'sort'  => 'create_datetime',
+                    'order' => 'desc'
                 )
             );
 
@@ -274,7 +317,7 @@ class shopSyrrssPluginRunController extends waLongActionController
             }
 
             // Чтобы отключить настройку сортировки отсутствующих и недоступных товаров
-            // Почему это это через параметр запроса-то???!!!
+            // Почему это через параметр запроса-то???!!!
             // Неужели нельзя в $options передавать?
             waRequest::setParam('drop_out_of_stock', 0);
 
@@ -284,41 +327,69 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * @return SimpleXMLElement
+     * @param string $title_str
+     * @param string $link_str
+     * @param string $description_str
+     * @param string $generator_str
+     * @param array $options
+     * @return DOMDocument
+     * @throws DOMException
+     * @noinspection PhpSameParameterValueInspection
      */
-    private function initRss()
+    private function initRss(string $title_str, string $link_str, string $description_str, string $generator_str, array $options = []): DOMDocument
     {
-        $rss = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><rss  version="2.0"><channel /></rss>');
+        $options = array_merge(['yaturbo' => false], $options);
 
-        return $rss;
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $rss = $dom->createElement('rss');
+        $dom->appendChild($rss);
+        $rss->setAttribute('version', '2.0');
+
+        $channel = $dom->createElement('channel');
+        $rss->appendChild($channel);
+
+        $title = $dom->createElement('title');
+        $title->appendChild(new DOMText($title_str));
+        $channel->appendChild($title);
+
+        $link = $dom->createElement('link');
+        $link->appendChild(new DOMText($link_str));
+        $channel->appendChild($link);
+
+        $description = $dom->createElement('description');
+        $description->appendChild(new DOMText($description_str));
+        $channel->appendChild($description);
+
+        $generator = $dom->createElement('generator');
+        $generator->appendChild(new DOMText($generator_str));
+        $channel->appendChild($generator);
+
+        return $dom;
     }
 
     /**
-     * @param string $file
      * @return string
+     * @throws waException
      */
-    private function getTempPath($file = null)
+    private function getTempPath(): string
     {
-        if (!$file) {
-            $file = $this->processId.'.xml';
-        }
-        return waSystem::getInstance()->getTempPath('plugins/syrrss/', 'shop').$file;
+        $file = $this->processId . '.xml';
+        return waSystem::getInstance()->getTempPath('plugins/syrrss/', 'shop') . $file;
     }
 
     /**
      *
-     * @param string $path
+     * @param string|null $path
      * @throws waException
      */
-    private function loadRss($path = null)
+    private function loadRss(string $path = null)
     {
-        if (!$path) {
-            $path = $this->getTempPath();
-        }
+        if (!$path) $path = $this->getTempPath();
 
         if (!$this->rss) {
-            $this->rss = simplexml_load_file($path);
-            if (!$this->rss) {
+            $this->rss = new DOMDocument();
+            if (!$this->rss->load($path)) {
+                waLog::log('Error loading ' . $path);
                 throw new waException("Error while read saved XML");
             }
         }
@@ -328,46 +399,53 @@ class shopSyrrssPluginRunController extends waLongActionController
      * Добавляет item в channel
      *
      * @param array $product
+     * @throws DOMException|waException
+     * @throws Exception
      */
-    private function addItem($product)
+    private function addItem(array $product)
     {
-        /** @todo Ask user about image size */
-        $size = "210x0";
+        $size = $this->data['image_size'];
         $image_tag = "";
         $create_date = new DateTime($product["create_datetime"]);
 
-        $item = $this->rss->channel->addChild("item");
-        $item->title = strip_tags($product["name"]);
-        $item->link = $this->productUrl($product);
-        $item->pubDate = $create_date->format("r");
+        $channel = $this->rss->getElementsByTagName('channel')->item(0);
+        $item = $this->rss->createElement('item');
 
-        /** @todo Process more tham one image, ask user about maximum of images to export */
-        if(isset($product["images"])) {
-            $image = array_shift($product["images"]);
-            $image_tag = '<img src="'.
-                    'http://'.
-                    ifempty($this->data['base_url'], 'localhost').
-                    shopImage::getUrl($image, $size).
-                    '" alt="' .
-                    htmlentities($product["name"], ENT_QUOTES, 'UTF-8').
-                    '">';
+        $item->appendChild($this->rss->createElement('title', strip_tags($product['name'])));
+        $item->appendChild($this->rss->createElement('link', $this->productUrl($product)));
+        $item->appendChild($this->rss->createElement('pubDate', $create_date->format('r')));
+
+        if (('none' !== $this->data['images_counter']['type']) && ($images = $product['images'] ?? null) && is_array($images)) {
+            $img_cnt = 0;
+            foreach ($images as $image) {
+                if ($image) {
+                    $image_tag .= '<img src="' .
+                        $this->data['schema'] .
+                        ($this->data['base_url'] ?: 'localhost') .
+                        shopImage::getUrl($image, $size) .
+                        '" alt="' .
+                        htmlentities($product["name"], ENT_QUOTES, 'UTF-8') .
+                        '">';
+
+                    if (('max' === $this->data['images_counter']['type']) && (++$img_cnt >= $this->data['images_counter']['value']))
+                        break;
+                }
+            }
         }
 
         // No need to add empty description tag if there's no images nor summary
-        if(!empty($image_tag) || !empty($product["summary"])) {
-            // FCUK, SimpleXML doesn't support CDATA!!!!!!!
-            $cdata_description = $item->addChild('description');
+        if (!empty($image_tag) || !empty($product["summary"])) {
+            $el_description = $this->rss->createElement('description');
 
-            $description = "{$image_tag}<p>" .
-                    htmlentities(strip_tags($product["summary"]), ENT_QUOTES, 'UTF-8').
-                    '</p>'.
-                    $this->getItemPrice($product);
+            $description = "$image_tag<p>" .
+                htmlentities(strip_tags($product["summary"]), ENT_QUOTES, 'UTF-8') .
+                '</p>' .
+                $this->getItemPrice($product);
 
-            $cdata_dom_node = dom_import_simplexml($cdata_description);
-            $dom_node_owner = $cdata_dom_node->ownerDocument;
-            $cdata_dom_node->appendChild($dom_node_owner->createCDATASection($description));
+            $el_description->appendChild($this->rss->createCDATASection($description));
+            $item->appendChild($el_description);
         }
-
+        $channel->appendChild($item);
     }
 
     /**
@@ -375,49 +453,42 @@ class shopSyrrssPluginRunController extends waLongActionController
      * @param array $product
      * @return string
      */
-    private function productUrl($product)
+    private function productUrl(array $product): string
     {
-//        $url = version_compare(PHP_VERSION, '5.3.0', ">=") ? preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', function($a){return rawurlencode(reset($a));}, $product['frontend_url']) : preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
-        $url = preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $product['frontend_url']);
+        $url = preg_replace_callback('@([^\w_/-?%&]+)@i', function ($a) {
+            return rawurlencode(reset($a));
+        }, $product['frontend_url']);
 
         if ($this->data['utm']) {
-            $url .= (strpos($url, '?') ? '&' : '?').$this->data['utm'];
+            $url .= (strpos($url, '?') ? '&' : '?') . $this->data['utm'];
         }
 
-        return 'http://'.ifempty($this->data['base_url'], 'localhost').$url;
+        return $this->data['schema'] . ($this->data['base_url'] ?: 'localhost') . $url;
     }
 
     /**
-     * Old versions of PHP sux
-     *
-     * @deprecated since version 1.0.0
-     * @param array $a
-     * @return string
+     * @return void
+     * @throws waException
      */
-    private static function _rawurlencode($a)
-    {
-        return rawurlencode(reset($a));
-    }
-
     private function validate()
     {
-        $libxml_internal_errors = libxml_use_internal_errors(TRUE);
+        $libxml_internal_errors = libxml_use_internal_errors(true);
         $this->loadRss($this->data['path']['offers']);
 
-        if(!$this->rss) {
+        if (!$this->rss) {
 
             $this->data["error"] = array();
-            $err=array();
+            $err = array();
 
-            foreach(libxml_get_errors() as $error) {
+            foreach (libxml_get_errors() as $error) {
                 $this->data["error"][] = array(
-                    "level" => "error",
-                    "message" => "#{$error->code} [{$error->line}:{$error->column}] {$error->message}"
+                    "level"   => "error",
+                    "message" => "#$error->code [$error->line:$error->column] $error->message"
                 );
-                $err[] = "#{$error->code} [{$error->line}:{$error->column}] {$error->message}";
+                $err[] = "#$error->code [$error->line:$error->column] $error->message";
             }
 
-            $this->error(implode("\n\t", $err));
+//            $this->error(implode("\n\t", $err));
             libxml_clear_errors();
         }
 
@@ -425,20 +496,20 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     * @todo Fuck out a presentation layer from the Controller to the View!
      * @return string
+     * @throws waException
      */
-    protected function report()
+    protected function report(): string
     {
         $report = '<div class="successmsg">';
         $report .= sprintf('<i class="icon16 yes"></i>%s ', _wp('Exported'));
 
-        $report .= htmlentities(_wp("%d product", "%d products", $this->data["total_written"]), ENT_QUOTES, "utf-8");
+        $report .= htmlentities(_wp("%d товар", "%d товаров", $this->data["total_written"]), ENT_QUOTES, "utf-8");
 
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
-            $interval = sprintf(_wp('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
-            $report .= ' '.sprintf(_wp('(total time: %s)'), $interval);
+            $interval = sprintf(_wp('%02d ч. %02d мин. %02d сек.'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
+            $report .= ' ' . sprintf(_wp('(время работы: %s)'), $interval);
         }
         $report .= '</div>';
 
@@ -446,19 +517,19 @@ class shopSyrrssPluginRunController extends waLongActionController
     }
 
     /**
-     *
      * @param array $product
      * @return string
+     * @throws waException
      */
-    private function getItemPrice($product)
+    private function getItemPrice(array $product): string
     {
 
         if (isset($product["price"]) && isset($product["currency"])) {
             return "<p>" .
-            _wp("Price:") .
-            " " .
-            waCurrency::format("%{s}", $product["price"], $this->data["primary_currency"]) .
-            "</p>";
+                _wp("Цена:") .
+                " " .
+                waCurrency::format("%{s}", $product["price"], $this->data["primary_currency"]) .
+                "</p>";
         }
 
         return "";

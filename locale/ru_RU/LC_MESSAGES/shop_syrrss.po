@@ -1,93 +1,124 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: shop/plugins/syrrss\n"
-"POT-Creation-Date: 2014-09-18 00:32+0400\n"
+"POT-Creation-Date: 2022-09-19 13:58+0300\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Serge Rodovnichenko <sergerod@gmail.com>\n"
+"Last-Translator: shop/plugins/syrrss\n"
 "Language-Team: shop/plugins/syrrss\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n"
-"%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-Language: ru_RU\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Poedit-Basepath: utf-8\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:16
-msgid "All"
-msgstr "Все"
+msgid "2. Общие параметры экспорта"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:17
-msgid "Last 15"
-msgstr "Последние 15"
+msgid "Описание канала RSS."
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:17
-msgid "Last 25"
-msgstr "Последние 25"
+msgid "Размер выгружаемых изображений"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:18
-msgid "Last 50"
-msgstr "Последние 50"
+msgid "Можно указать вручную размер в формате или выбрать один из стандартных размеров из списка."
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:18
-msgid "Last 100"
-msgstr "Последние 100"
+msgid "Количество выгружаемых изображений"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:20
+msgid "все"
+msgstr ""
+
+msgid "не более, чем"
+msgstr ""
+
+msgid "не выгружать совсем"
+msgstr ""
+
+msgid "Использовать https для ссылок"
+msgstr ""
+
+msgid "генерировать ссылки на товар и изображения с https"
+msgstr ""
+
+msgid "UTM-метки"
+msgstr ""
+
+msgid "Источник (utm_source)"
+msgstr ""
+
+msgid "Канал (utm_medium)"
+msgstr ""
+
+msgid "Кампания (utm_campaign)"
+msgstr ""
+
+msgid "Ко всем адресам (URL) содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам. Если вы не используете UTM-метки, просто оставьте поля пустыми."
+msgstr ""
+
+msgid "Экспортировать"
+msgstr ""
+
+msgid "Получить ссылку на файл"
+msgstr ""
+
+msgid "RSS товаров"
+msgstr ""
+
+msgid "Максимальное число товаров в ленте"
+msgstr ""
+
+msgid "Название канала"
+msgstr ""
+
+msgid "Описание канала"
+msgstr ""
+
 msgid "RSS Feed of Products"
 msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:141
-msgid "Maximum products in the feed"
-msgstr "Максимальное количество товаров в фиде"
+msgid "Макс. (Ширина, Высота)"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:164
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:167
-msgid "Channel Name"
-msgstr "Название канала"
+msgid "Ширина = авто, Высота ="
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/templates/actions/backend/BackendSetup.html:171
-msgid "Channel Description"
-msgstr "Описание канала"
+msgid "Ширина = %d px, Высота = авто"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/lib/actions/backend/shopSyrrssPluginBackendSetup.action.php:88
-msgid "New products"
-msgstr "Новые товары"
+msgid "Квадратная обрезка: %dx%d px"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/lib/actions/backend/shopSyrrssPluginBackendSetup.action.php:91
-msgid "Newest products in %s store"
-msgstr "Новые товары в магазине %s"
+msgid "Прямоугольная обрезка %dx%d px"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/lib/actions/backend/shopSyrrssPluginRun.controller.php:431
-msgid "%d product"
-msgid_plural "%d products"
-msgstr[0] "%d товар"
-msgstr[1] "%d товара"
-msgstr[2] "%d товаров"
+msgid "Новые товары"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/lib/actions/backend/shopSyrrssPluginRun.controller.php:464
-msgid "Price:"
-msgstr "Цена:"
+msgid "Новые товары в магазине %s"
+msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/lib/actions/backend/shopSyrrssPluginRun.controller.php:430
 msgid "Exported"
-msgstr "Экспортировано"
-
-#: /wa-apps/shop/plugins/syrrss/lib/actions/backend/shopSyrrssPluginRun.controller.php:433
-msgid "%02d hr %02d min %02d sec"
 msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/lib/actions/backend/shopSyrrssPluginRun.controller.php:442
-msgid "(total time: %s)"
+msgid "%02d ч. %02d мин. %02d сек."
 msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/lib/config/plugin.php:12
-msgid "RSS Feed of products"
+msgid "(время работы: %s)"
 msgstr ""
 
-#: /wa-apps/shop/plugins/syrrss/lib/config/plugin.php:13
-msgid "Export all or several newest products to the RSS feed"
-msgstr "Экспорт всех или нескольких новых товаров в RSS фид"
+msgid "%d товар"
+msgid_plural "%d товаров"
+msgstr[0] "товар"
+msgstr[1] "товара"
+msgstr[2] "товаров"
+
+msgid "Цена:"
+msgstr ""
+
+msgid "Экспорт всех или указанное количество новых товаров в RSS-ленту"
+msgstr ""

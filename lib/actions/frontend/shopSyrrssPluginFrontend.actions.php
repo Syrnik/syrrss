@@ -4,10 +4,21 @@
  *
  * @author serge
  */
+declare(strict_types=1);
+
+/**
+ * @Controller frontend
+ */
 class shopSyrrssPluginFrontendActions extends waActions
 {
+    /**
+     * @ControllerAction frontend/feed
+     * @return void
+     * @throws waException
+     */
     public function feedAction()
     {
+        /** @var shopSyrrssPlugin $plugin */
         $plugin = wa()->getPlugin('syrrss');
 
         $profile_helper = new shopImportexportHelper('syrrss');
