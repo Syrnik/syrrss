@@ -12,7 +12,7 @@ return array(
     'name'           => /*_wp*/('RSS товаров'),
     'description'    => /*_wp*/('Экспорт всех или указанное количество новых товаров в RSS-ленту'),
     'vendor'         => 670917,
-    'version'        => '2.0.0',
+    'version'        => '3.0.0',
     'importexport'   => 'profiles',
     'export_profile' => true,
     'frontend'       => true,
