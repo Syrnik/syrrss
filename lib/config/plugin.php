@@ -19,6 +19,5 @@ return array(
     'locale'         => ['ru_RU'],
     'icon'           => 'img/feed.png',
     'img'            => 'img/feed.png',
-    'icons'          => [16 => 'img/feed.png'],
-    'shop_settings'  => true
+    'icons'          => [16 => 'img/feed.png']
 );
