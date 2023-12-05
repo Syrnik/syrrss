@@ -191,14 +191,19 @@ class shopSyrrssPluginRunController extends waLongActionController
         $interval = empty($this->data["timestamp"]) ? 0 : time() - $this->data['timestamp'];
 
         $response = array(
-            'time'       => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
-            'processId'  => $this->processId,
-            'progress'   => sprintf("%0.3f%%", 100.0 * $this->data["processed_count"] / $this->data["count"]),
-            'ready'      => $this->isDone(),
-            'count'      => empty($this->data['count']) ? false : $this->data['count'],
-            'memory'     => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
-            'memory_avg' => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
+            'time'            => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
+            'processId'       => $this->processId,
+            'progress'        => sprintf("%0.3f%%", 100.0 * $this->data["processed_count"] / $this->data["count"]),
+            'ready'           => $this->isDone(),
+            'count'           => empty($this->data['count']) ? false : $this->data['count'],
+            'processed_count' => $this->data["total_written"],
+            'memory'          => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
+            'memory_avg'      => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
         );
+
+        if ($response['count'] > $this->data['max_products']) {
+            $response['count'] = $this->data['max_products'];
+        }
 
         if ($this->isDone()) {
             $response["report"] = $this->report(); // . $this->validateReport();
