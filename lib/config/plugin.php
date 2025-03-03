@@ -9,15 +9,15 @@
  */
 
 return array(
-    'name'           => /*_wp*/('RSS товаров'),
-    'description'    => /*_wp*/('Экспорт всех или указанное количество новых товаров в RSS-ленту'),
+    'name'           => 'RSS товаров',
+    'description'    => 'Экспорт всех или указанное количество новых товаров в RSS-ленту',
     'vendor'         => 670917,
-    'version'        => '2.0.0',
+    'version'        => '3.0.0',
     'importexport'   => 'profiles',
     'export_profile' => true,
     'frontend'       => true,
     'locale'         => ['ru_RU'],
     'icon'           => 'img/feed.png',
-    'icons'          => [16 => 'img/feed.png'],
-    'shop_settings'  => true
+    'img'            => 'img/feed.png',
+    'icons'          => [16 => 'img/feed.png']
 );

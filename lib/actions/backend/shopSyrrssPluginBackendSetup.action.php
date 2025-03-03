@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright  Serge Rodovnichenko <serge@syrnik.com>, 2014-2022
+ * @copyright  Serge Rodovnichenko <serge@syrnik.com>, 2014-2023
  * @license http://www.webasyst.com/terms/#eula Webasyst Commercial
  */
 

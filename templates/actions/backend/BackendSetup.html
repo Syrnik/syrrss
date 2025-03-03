@@ -6,70 +6,56 @@
 604800 => "Автоматически, но не чаще чем раз в неделю"
 ]}
 {$max_products_options = [0 => "All", 15 => "15", 25 => "25", 50 => "50", 100 => "100" ]}
-<div class="block double-padded" id="s-syrrss-form">
+
+<div id="s-syrrss-form">
     <h1>{_wp("RSS товаров")|escape}</h1>
-    <p>Экспорт товаров в RSS-поток. Товары упорядочены по дате добавления, самый первый — самый новый.</p>
+    <p>{_wp('Экспорт товаров в RSS-поток. Товары упорядочены по дате добавления, самый первый — самый новый.')|escape}</p>
 
     {if $settlements}
         <form id="s-plugin-syrrss" method="post" action="?plugin=syrrss&module=run">
-            <div class="fields form">
-
+            <div class="fields full-width">
                 {if $info.exists}
-                    <div class="field-group" style="border-bottom: 1px solid #ccc;">
+                    <div class="field-group">
                         <div class="field">
-                            <div class="name bold">
-                                <label for="s-plugin-syrrss-last-export">RSS-файл</label>
-                            </div>
+                            <div class="name for-input bold">{_wp('RSS-файл')|escape}</div>
                             <div class="value">
-                                <input id="s-plugin-syrrss-last-export" type="text" value="{$info.url|escape}"
-                                       readonly="readonly" class="long bold large" style="width: 75% !important;">
+                                <input type="text" value="{$info.url|escape}"
+                                       readonly="readonly" class="full-width bold large">
                                 <a href="{$info.url}?download=1" class="bold nowrap inline"><i
-                                            class="icon16 download no-overhanging" style="margin-top: 0.4em;"></i>Скачать</a>
-                                <p class="small">Файл обновлен: {$info.mtime|wa_datetime:"humandatetime"}</p>
-                                <p class="small"><i class="icon10 yes"></i> Ссылка на RSS-файл является постоянной и не
+                                            class="fas fa-file-download"></i> Скачать</a>
+                                <p class="small">[`Файл обновлен:`] {$info.mtime|wa_datetime:"humandatetime"}</p>
+                                <p class="small"><i class="fas fa-check text-green"></i> Ссылка на RSS-файл является постоянной и не
                                     меняется при повторном экспорте товаров. Для включения автоматического экспорта
                                     товаров укажите период обновления с помощью настройки «Обновление файла» ниже и
                                     сохраните настройку, повторно экспортировав товары. Чтобы сделать ссылку
                                     недействительной, удалите профиль.</p>
+
                             </div>
                         </div>
                     </div>
                 {/if}
 
-                <div class="field js-profile-description">
-                    <div class="name">Название профиля</div>
-                    <div class="value">
-                        <input type="text" name="profile[name]" value="{$profile.name|escape}">
-                        <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
-                    </div>
-                </div>
-
                 <div class="field-group">
-
                     <div class="field">
-                        <div class="name">
-                            <label for="s-plugin-syrrss-domain">Витрина</label>
+                        <div class="name for-input">Название профиля</div>
+                        <div class="value">
+                            <input type="text" name="profile[name]" value="{$profile.name|escape}">
+                            <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name for-input">
+                            Витрина
                         </div>
                         {if count($settlements)>1}
-                            <div class="value no-shift">
-                                <select name="config[domain]" id="s-plugin-syrss-domain">
-                                    {foreach $settlements as $route}
-                                        <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
-                                    {/foreach}
-                                </select>
-
-                                <p class="hint">
-                                    Витрину необходимо указать для
-                                    правильного указания адресов страниц
-                                    товаров в RSS-файле и отбора товаров
-                                    для экспорта.
-                                </p>
-                            </div>
-                        {elseif reset($settlements)}
-                            <div class="value no-shift">
-                                {$route = reset($settlements)}
-                                <input type="text" readonly="readonly" value="{$route|escape}" name="config[domain]"
-                                       id="s-plugin-syrrss-domain">
+                            <div class="value">
+                                <div class="wa-select">
+                                    <select name="config[domain]">
+                                        {foreach $settlements as $route}
+                                            <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
 
                                 <p class="hint">
                                     Витрину необходимо указать для
@@ -79,18 +65,27 @@
                                 </p>
                             </div>
                         {else}
-                            <span class="errormsg">Не удалось обнаружить витрину магазина. Проверьте настройки поселения магазина.</span>
+                            <div class="value">
+                                {$route = reset($settlements)}
+                                <input type="text" readonly="readonly" value="{$route|escape}" name="config[domain]">
+
+                                <p class="hint">
+                                    Витрину необходимо указать для
+                                    правильного указания адресов страниц
+                                    товаров в RSS-файле и отбора товаров
+                                    для экспорта.
+                                </p>
+                            </div>
                         {/if}
                     </div>
-
                     <div class="field">
-                        <div class="name">
-                            <label for="s-plugin-syrrss-ondemand-update">Обновление файла</label>
-                        </div>
-                        <div class="value no-shift">
-                            <select name="config[lifetime]" id="s-plugin-syrrss-ondemand-update">
-                                {html_options options=$ondemand_update_options selected=$profile.config.lifetime}
-                            </select>
+                        <div class="name for-input">Обновление файла</div>
+                        <div class="value">
+                            <div class="wa-select">
+                                <select name="config[lifetime]" id="s-plugin-syrrss-ondemand-update">
+                                    {html_options options=$ondemand_update_options selected=$profile.config.lifetime}
+                                </select>
+                            </div>
                             <p class="hint">
                                 Эта настройка позволяет включить
                                 <em>повторный автоматический экспорт</em>
@@ -107,22 +102,22 @@
                             </p>
                         </div>
                     </div>
-
                 </div>
-                <div class="clear-left"></div>
 
                 <div class="field-group">
-                    <h2 class="gray">1. Выберите товары</h2>
+                    <h2>1. [`Выберите товары`]</h2>
                     {* Hash selection will be released next time *}
-                    <input type="hidden" name="config[hash]" value="">
+                    {*<input type="hidden" name="config[hash]" value="">
+                    <input type="hidden" name="hash" value="">*}
+
                     <div class="field">
-                        <div class="name">
-                            <label for="s-plugin-syrrss-max-products">{_wp("Максимальное число товаров в ленте")}</label>
-                        </div>
+                        <div class="name for-input">{_wp("Максимальное число товаров в ленте")}</div>
                         <div class="value no-shift">
-                            <select name="config[max_products]" id="s-plugin-syrrss-max-products">
-                                {html_options options=$max_products_options selected=$profile.config.max_products}
-                            </select>
+                            <div class="wa-select">
+                                <select name="config[max_products]">
+                                    {html_options options=$max_products_options selected=$profile.config.max_products}
+                                </select>
+                            </div>
                             <p class="hint">
                                 Эта настройка позволяет указать
                                 максимальное количество товаров,
@@ -138,11 +133,17 @@
                         </div>
                     </div>
                     <div class="field">
-                        <div class="name"><label for="s-plugin-syrrss-config-export-zero-stock">Остатки</label></div>
-                        <div class="value no-shift"><label for="s-plugin-syrrss-config-export-zero-stock">
+                        <div class="name for-checkbox">Остатки</div>
+                        <div class="value">
+                            <label>
+                                <span class="wa-checkbox">
                                 <input name="config[export_zero_stock]" id="s-plugin-syrrss-config-export-zero-stock"
                                        type="checkbox"
                                        value="1"{if !empty($profile.config.export_zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}>
+                                    <span>
+                                        <span class="icon"><i class="fas fa-check"></i></span>
+                                    </span>
+                                </span>
                                 Выгружать товары с нулевым остатком
                             </label>
                             <p class="hint">Добавлять в ленту товары, которых нет в наличии</p>
@@ -153,14 +154,15 @@
                             {/if}
                         </div>
                     </div>
-                    <div class="clear-left"></div>
+
+
                 </div>
 
                 <div class="field-group">
-                    <h2 class="gray">{_wp('2. Общие параметры экспорта')|escape}</h2>
+                    <h2 class="gray">2. {_wp('Общие параметры экспорта')|escape}</h2>
 
                     <div class="field">
-                        <div class="name">{_wp("Название канала")|escape}</div>
+                        <div class="name for-input">{_wp("Название канала")|escape}</div>
                         <div class="value">
                             <input type="text" name="config[channel_name]"
                                    value="{$profile.config.channel_name|escape}">
@@ -169,122 +171,129 @@
                         </div>
                     </div>
                     <div class="field">
-                        <div class="name">{_wp("Описание канала")|escape}</div>
+                        <div class="name for-input">{_wp("Описание канала")|escape}</div>
                         <div class="value">
                             <textarea
                                     name="config[channel_description]">{$profile.config.channel_description|escape}</textarea>
                             <p class="hint">{_wp('Описание канала RSS.')|escape}</p>
                         </div>
                     </div>
-
                     <div class="field">
-                        <div class="name">{_wp('Размер выгружаемых изображений')}</div>
-                        <div class="value">
-                            <input type="text" name="config[image_size]" value="{$profile.config.image_size|escape}">
-                        </div>
-                        <div class="value">
+                        <div class="name for-input">{_wp('Размер выгружаемых изображений')}</div>
+                        <div class="value js-field-container">
+                            <input type="text" name="config[image_size]" value="{$profile.config.image_size|escape}" class="js-image-size-input"><br>
                             <span class="hint">{_wp('Можно указать вручную размер в формате или выбрать один из стандартных размеров из списка.')}</span>
-                        </div>
-                        <div class="value">
-                            <select id="s-plugin-syrrss-image-size-select">
-                                {foreach $image_sizes_list as $size}
-                                    <option value="{$size.value|escape}">{$size.title|escape}</option>
-                                {/foreach}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <div class="name">{_wp('Количество выгружаемых изображений')}</div>
-                        <div class="value">
-                            <label><input type="radio" name="config[images_count_type]"
-                                          value="all"{if $profile.config.images_count_type=='all'} checked{/if}>
-                                — {_wp('все')}</label>
-                        </div>
-                        <div class="value">
-                            <label><input type="radio" name="config[images_count_type]"
-                                          value="max"{if $profile.config.images_count_type=='max'} checked{/if}>
-                                — {_wp('не более, чем')} </label>
-                            <input type="number" min="1" step="1" class="short numerical"
-                                   name="config[images_count_value]"
-                                   value="{$profile.config.images_count_value}">
-                        </div>
-                        <div class="value">
-                            <label><input type="radio" name="config[images_count_type]"
-                                          value="none"{if $profile.config.images_count_type=='none'} checked{/if}>
-                                — {_wp('не выгружать совсем')}</label>
+                            <div class="wa-select">
+                                <select class="js-image-size-select">
+                                    {foreach $image_sizes_list as $size}
+                                        <option value="{$size.value|escape}">{$size.title|escape}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
                         </div>
                     </div>
-
                     <div class="field">
-                        <div class="name">{_wp('Использовать https для ссылок')}</div>
+                        <div class="name for-checkbox">{_wp('Количество выгружаемых изображений')}</div>
+                        <div class="value js-field-container">
+                            <div>
+                                <label>
+                                    <span class="wa-radio">
+                                        <input type="radio" name="config[images_count_type]" class="js-image-quantity-selector"
+                                               value="all"{if $profile.config.images_count_type=='all'} checked{/if} />
+                                        <span></span>
+                                    </span>
+                                    — {_wp('все')}
+                                </label>
+                            </div>
+                            <div>
+                                <label>
+                                    <span class="wa-radio">
+                                        <input type="radio" name="config[images_count_type]" value="max"{if $profile.config.images_count_type=='max'} checked{/if} class="js-image-quantity-selector" />
+                                        <span></span>
+                                    </span>
+                                    — {_wp('не более, чем')}
+                                </label>
+                                <input type="number" min="1" step="1" class="shortest align-right js-max-images-input"
+                                       name="config[images_count_value]"
+                                       value="{$profile.config.images_count_value}">
+                            </div>
+                            <div>
+                                <label>
+                                    <span class="wa-radio">
+                                        <input type="radio" name="config[images_count_type]"
+                                               value="none"{if $profile.config.images_count_type=='none'} checked{/if} class="js-image-quantity-selector" />
+                                        <span></span>
+                                    </span>
+                                    — {_wp('не выгружать совсем')}
+                                </label>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name for-checkbox">{_wp('Использовать https для ссылок')}</div>
                         <div class="value">
                             <input type="hidden" name="config[use_https]" value="0">
-                            <label><input type="checkbox" name="config[use_https]"
-                                          value="1"{if $profile.config.use_https} checked{/if}>
+                            <label>
+                                <span class="wa-checkbox">
+                                    <input type="checkbox" name="config[use_https]"
+                                           value="1"{if $profile.config.use_https} checked{/if}>
+                                    <span>
+                                        <span class="icon">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    </span>
+                                </span>
                                 — {_wp('генерировать ссылки на товар и изображения с https')}
                             </label>
-
                         </div>
                     </div>
 
                     <div class="field">
-                        <div class="name">{_wp('UTM-метки')|escape}</div>
-                        <div class="value no-shift">
+                        <div class="name for-input">{_wp('UTM-метки')|escape}</div>
+                        <div class="value">
+                            <div>
                             {_wp('Источник (utm_source)')|escape}:<br>
                             <input type="text" name="config[utm][source]"
                                    value="{$profile.config.utm.source|default:''|escape}">
-                        </div>
-                        <div class="value no-shift">
-                            {_wp('Канал (utm_medium)')|escape}:<br>
-                            <input type="text" name="config[utm][medium]"
-                                   value="{$profile.config.utm.medium|default:''|escape}">
-                        </div>
-                        <div class="value no-shift">
-                            {_wp('Кампания (utm_campaign)')|escape}:<br>
-                            <input type="text" name="config[utm][campaign]"
-                                   value="{$profile.config.utm.campaign|default:''|escape}">
-                        </div>
-                        <div class="value">
+                            </div>
+                            <div>
+                                {_wp('Канал (utm_medium)')|escape}:<br>
+                                <input type="text" name="config[utm][medium]" value="{$profile.config.utm.medium|default:''|escape}">
+                            </div>
+                            <div>
+                                {_wp('Кампания (utm_campaign)')|escape}:<br>
+                                <input type="text" name="config[utm][campaign]" value="{$profile.config.utm.campaign|default:''|escape}">
+                            </div>
                             <p class="hint">{_wp('Ко всем адресам (URL) содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам. Если вы не используете UTM-метки, просто оставьте поля пустыми.')|escape}</p>
                         </div>
                     </div>
 
                 </div>
-                <div class="clear-left"></div>
 
-                <div class="field-group" id="plugin-syrrss-submit">
+                <div class="field-group js-submit-field">
                     <div class="field">
-                        <div class="value submit">
-                            <button type="submit" class="button green">{_wp('Экспортировать')}</button>
-                            <br><br>
-                            <em class="small js-profile-notice">При экспорте изменения в настройках профиля будут
-                                сохранены и применены к последующим экспортам автоматически</em>
-
+                        <div class="submit value">
+                            <button type="submit" class="button green js-submit-button">{_wp('Экспортировать')}</button>
+                            <div class="custom-mt-12 js-profile-notice italic small">[`При экспорте изменения в настройках профиля будут
+                                сохранены и применены к последующим экспортам автоматически.`]</div>
                             <div class="js-progressbar-container" style="display:none;">
-                                <div class="progressbar blue float-left" style="display: none; width: 70%;">
-                                    <div class="progressbar-outer">
-                                        <div class="progressbar-inner" style="width: 0;"></div>
-                                    </div>
+                                <div class="flexbox" style="column-gap: 1rem">
+                                    <progress style="flex: 1" class="js-progressbar"></progress>
+                                    <div class="nowrap js-progress-counter" style="flex: 0">5.45 / 8</div>
                                 </div>
-                                <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif"/>
-
-                                <div class="clear"></div>
                                 <span class="progressbar-description"></span>
-                                <br style="clear:left;"/>
-                                <br>
-                                <span class="small italic">
-                                    Не закрывайте окно браузера и не покидайте страницу до тех пор, пока процесс экспорта не будет завершен
-                                </span>
+                                <div class="custom-mt-12 small italic state-caution">
+                                    [`Не закрывайте окно браузера и не покидайте страницу до тех пор, пока процесс экспорта не будет завершен.`]
+                                </div>
                             </div>
-                            <br><br>
-                            <em class="errormsg"></em>
+                            <p class="state-error-hint js-error-message" style="display: none"></p>
                         </div>
                     </div>
                 </div>
-                <div class="field-group" id="plugin-syrrss-report" style="display: none;">
+
+                <div class="field-group js-report" style="display: none;">
                     <div class="field">
-                        <div class="value"></div>
                         <div class="value"><br><a href="#/syrrss{if !empty($profile.id)}:{$profile.id}{/if}/"
                                                   name="/syrrss/" onclick="window.location.reload();" class="bold">{_wp('Получить ссылку на файл')}</a></div>
                     </div>
@@ -293,22 +302,20 @@
             </div>
         </form>
     {else}
-        <p>
-            <span class="errormsg">Не определено ни одного поселения магазина.</span>
-            Для работы модуля экспорта товаров в RSS необходимо создать хотя бы
-            одно поселение магазина на сайте, чтобы правильно указывать адреса
-            страниц товаров в XML-файле RSS-фида.
-        </p>
     {/if}
 </div>
 
-<script type="text/javascript">
-    if ($.importexport.plugins.syrrss) {
-        $.importexport.plugins.syrrss.init();
-    } else {
-        $.getScript('{$wa_app_static_url}plugins/syrrss/js/script{if !$wa->debug()}.min{/if}.js', function () {
-            $.importexport.plugins.syrrss.init();
-        });
-    }
-    $.importexport.profiles.set('syrrss', {$profiles|json_encode});
+<script>
+    (function($){
+        const sources = [
+            {
+                id: 'syrrss-ui2-plugin-js',
+                type: 'js',
+                uri: '{$wa_app_static_url}plugins/syrrss/js/script-ui2.js?{$wa->shop->syrrssPlugin->version()}'
+            }
+        ];
+
+        $.shop.loadSources(sources);
+        $.importexport.profiles.set('syrrss', {$profiles|json_encode:256});
+    })(jQuery);
 </script>

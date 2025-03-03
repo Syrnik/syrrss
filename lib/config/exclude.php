@@ -41,5 +41,7 @@ return array(
     'composer.json',
     '*/.travis',
     '*/*.dist',
-    '*/*.rst'
+    '*/*.rst',
+    '.editorconfig',
+    '*/.editorconfig'
 );

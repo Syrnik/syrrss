@@ -98,18 +98,15 @@ class shopSyrrssPluginRunController extends waLongActionController
 
             $this->initRouting();
 
-            $route = wa()->getRouteUrl('shop/frontend', array(), true);
-            $route = preg_replace('|^https?://|', $this->data['schema'], $route);
-
             $this->rss = $this->initRss(
                 $profile_config['channel_name'],
-                $route,
+                "{$this->data['schema']}{$this->data['storefront_url']}",
                 $profile_config["channel_description"],
                 "SyrRSS plugin for Shop-Script " . $Plugin->getVersion()
             );
 
         } catch (waException $e) {
-            echo json_encode(array('error' => $e->getMessage()));
+            echo waUtils::jsonEncode(array('error' => $e->getMessage()), JSON_UNESCAPED_UNICODE);
         }
     }
 
@@ -194,14 +191,19 @@ class shopSyrrssPluginRunController extends waLongActionController
         $interval = empty($this->data["timestamp"]) ? 0 : time() - $this->data['timestamp'];
 
         $response = array(
-            'time'       => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
-            'processId'  => $this->processId,
-            'progress'   => sprintf("%0.3f%%", 100.0 * $this->data["processed_count"] / $this->data["count"]),
-            'ready'      => $this->isDone(),
-            'count'      => empty($this->data['count']) ? false : $this->data['count'],
-            'memory'     => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
-            'memory_avg' => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
+            'time'            => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
+            'processId'       => $this->processId,
+            'progress'        => sprintf("%0.3f%%", 100.0 * $this->data["processed_count"] / $this->data["count"]),
+            'ready'           => $this->isDone(),
+            'count'           => empty($this->data['count']) ? false : $this->data['count'],
+            'processed_count' => $this->data["total_written"],
+            'memory'          => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
+            'memory_avg'      => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
         );
+
+        if ($response['count'] > $this->data['max_products']) {
+            $response['count'] = $this->data['max_products'];
+        }
 
         if ($this->isDone()) {
             $response["report"] = $this->report(); // . $this->validateReport();
@@ -270,28 +272,20 @@ class shopSyrrssPluginRunController extends waLongActionController
      */
     private function initRouting()
     {
-        $routing = wa()->getRouting();
-        $app_id = $this->getAppId();
-        $domain_routes = $routing->getByApp($app_id);
-        $success = false;
-        foreach ($domain_routes as $domain => $routes) {
-            foreach ($routes as $route) {
-                if ($domain . '/' . $route['url'] == $this->data['domain']) {
-                    $routing->setRoute($route, $domain);
-                    waRequest::setParam($route);
-                    $this->data['base_url'] = parse_url(preg_replace('|https?://|', $this->data['schema'], $domain), PHP_URL_HOST);
-                    $success = true;
-                    break;
-                }
-            }
+        $storefront_list = new shopStorefrontList;
+        $storefront_list->addFilter(['url' => rtrim($this->data['domain'], '*')]);
+        if (!$storefront = $storefront_list->fetchFirst())
+            throw new waException(_wp('Error while select routing'));
+
+        waRequest::setParam($storefront['route']);
+        wa()->getRouting()->setRoute($storefront['route'], $storefront['domain']);
+        $this->data['storefront_url'] = $storefront['url_decoded'];
+
+        $base_url = $storefront['domain'];
+        if (!preg_match('@^https?://@', $base_url)) {
+            $base_url = (waRequest::isHttps() ? 'https://' : 'http://') . $base_url;
         }
-        if (!$success) {
-            throw new waException('Error while select routing');
-        }
-//        $app_settings_model = new waAppSettingsModel();
-//        $this->data['app_settings'] = array(
-//            'ignore_stock_count' => $app_settings_model->get($app_id, 'ignore_stock_count', 0)
-//        );
+        $this->data['base_url'] = parse_url($base_url, PHP_URL_HOST);
     }
 
     /**
